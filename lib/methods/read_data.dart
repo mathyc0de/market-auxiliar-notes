@@ -33,8 +33,8 @@ class Item {
     final NumberFormat f = NumberFormat.currency(symbol: "R\$");
     return 
       wtype == 1? 
-        "$name ${f.format(price)} / kg"
-        :"$name ${f.format(price)} / Un";
+        "$name ${f.format(price)}"
+        :"$name ${f.format(price)}";
     }
 
 

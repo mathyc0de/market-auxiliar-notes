@@ -34,7 +34,7 @@ class PrintPage extends StatelessWidget {
 
   List<List<String>> getData() {
     final int length = data.length;
-    final int collumns = length ~/ 33 + 1;
+    final int collumns = length ~/ 32 + 1;
     final List<List<String>> result;
     final NumberFormat f = NumberFormat.currency(symbol: "R\$");
     if (type == 1) {
@@ -94,7 +94,7 @@ Future<Uint8List> _generatePdf(PdfPageFormat format, String title) async {
     );
     pdf.addPage(
       pw.Page(
-        margin: const pw.EdgeInsets.all(10),
+        margin: const pw.EdgeInsets.symmetric(vertical: 0, horizontal: 4),
         build: (context) => pw.Column(
           children: [
             pw.Text(tableName),
