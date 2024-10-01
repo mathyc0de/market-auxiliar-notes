@@ -34,7 +34,7 @@ class PrintPage extends StatelessWidget {
 
   List<List<String>> getData() {
     final int length = data.length;
-    final int collumns = length ~/ 28 + 1;
+    final int collumns = length ~/ 33 + 1;
     final List<List<String>> result;
     final NumberFormat f = NumberFormat.currency(symbol: "R\$");
     if (type == 1) {
@@ -61,14 +61,13 @@ class PrintPage extends StatelessWidget {
                 }
                 return result;
     }
-    result = List.generate(28, (_) => []);
+    result = List.generate(33, (_) => []);
     int idx = 0;
     for (int i=0; i <= length - 1; i++) {
-      i % 27 == 0? idx = 0 : null;
+      i % 32 == 0? idx = 0 : null;
       result[idx].add(data[i].representation());
       idx++;
       }
-    result[27] = ["Total ${f.format(sumTable(data))}"];
     return result;
     }
   
@@ -77,7 +76,7 @@ class PrintPage extends StatelessWidget {
     if (type == 1) {
       return ['Produto', 'Preço', 'Peso / Qtd', 'Valores'];
     }
-    if (data.length <= 27) {
+    if (data.length <= 33) {
         return ['Produto', 'Preço'];
     }
     return ["Coluna 1" , "Coluna 2", "Coluna 3"];
@@ -95,6 +94,7 @@ Future<Uint8List> _generatePdf(PdfPageFormat format, String title) async {
     );
     pdf.addPage(
       pw.Page(
+        margin: const pw.EdgeInsets.all(10),
         build: (context) => pw.Column(
           children: [
             pw.Text(tableName),
