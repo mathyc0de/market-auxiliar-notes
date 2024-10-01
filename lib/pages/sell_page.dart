@@ -85,8 +85,7 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
   }
 
   Future<void> addProduct() async {
-    print(length);
-    if (length < 27) {
+    if (length < 32) {
       bool unitary = false;
       final TextEditingController nameController = TextEditingController();
       final TextEditingController priceController = TextEditingController();

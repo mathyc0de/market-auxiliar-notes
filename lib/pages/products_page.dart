@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fruteira/main.dart';
 import 'package:fruteira/methods/printer.dart';
 import 'package:fruteira/methods/read_data.dart';
+import 'package:fruteira/methods/str_manipulation.dart';
 import 'package:fruteira/widgets/buttons.dart';
 import 'package:fruteira/widgets/loadscreen.dart';
 import 'package:intl/intl.dart' show NumberFormat;
@@ -75,7 +77,7 @@ class _StateProductsPage extends State<ProductsPage> {
   
 
   Future<void> addProduct() async {
-    if (length < 81) {      
+    if (length < 96) {      
       bool unitary = false;
       final TextEditingController nameController = TextEditingController();
       final TextEditingController priceController = TextEditingController();
@@ -117,33 +119,32 @@ class _StateProductsPage extends State<ProductsPage> {
       });
       return;
     }
-    
   }
 
-  // Future<void> addMultiple() async {
-  //   final TextEditingController textController = TextEditingController();
-  //   await showDialog(
-  //     context: context, 
-  //     builder: (context) => AlertDialog(
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => paste(textController), 
-  //           child: const Text("Colar")
-  //           ),
-  //         TextButton(
-  //           onPressed: () => textToList(textController.text),
-  //           child: const Text("Adicionar Produtos")
-  //           )
-  //       ],
-  //       content: textFormFieldPers(
-  //         textController,
-  //         "Escreva uma lista no formato NOME PREÇO em cada linha",
-  //         keyboardType: TextInputType.text,
-  //         height: 300
-  //         ),
-  //     )
-  //   );
-  // }
+  Future<void> addMultiple() async {
+    final TextEditingController textController = TextEditingController();
+    await showDialog(
+      context: context, 
+      builder: (context) => AlertDialog(
+        actions: [
+          TextButton(
+            onPressed: () => paste(textController), 
+            child: const Text("Colar")
+            ),
+          TextButton(
+            onPressed: () => rawAdd(textController.text, widget.id),
+            child: const Text("Adicionar Produtos")
+            )
+        ],
+        content: textFormFieldPers(
+          textController,
+          "Escreva uma lista no formato NOME PREÇO em cada linha",
+          keyboardType: TextInputType.text,
+          height: 300
+          ),
+      )
+    );
+  }
 
   Future<void> edit(Item product) async {
     bool unitary = product.wtype == 1? false : true;
@@ -225,18 +226,35 @@ class _StateProductsPage extends State<ProductsPage> {
       );
   }
 
-  // void paste(TextEditingController controller) {
-  //   Clipboard.getData(Clipboard.kTextPlain).then((value) {
-  //     setState(() {
-  //     controller.text = value!.text.toString();
-  //     });
-  //   }); 
-  // }
+  void paste(TextEditingController controller) {
+    Clipboard.getData(Clipboard.kTextPlain).then((value) {
+      setState(() {
+      controller.text = value!.text.toString();
+      });
+    }); 
+  }
+
+  Future<void> rawAdd(String text, int listid) async {
+    final List<Item>? result = textToList(text, listid);
+    if (result == null) return;
+    for (final Item item in result) {
+      if (length >= 99) {
+        scaffoldMessengerKey.currentState!.showSnackBar(const SnackBar(
+          content: Text("O limite de 99 Produtos foi atingido, os excedentes não foran adicionados")));
+        break;
+        }
+      datahandler.insertItem(item);
+      length ++;
+    }
+    await _getRows();
+    setState(() {
+    });
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
   
 
-  // void textToList(String text) {
-  //   return;
-  // }
+
 
 
   @override
@@ -262,12 +280,12 @@ class _StateProductsPage extends State<ProductsPage> {
               label: "Imprimir Tabela",
               child: const Icon(Icons.print),
               onTap: printTable
+            ),
+            SpeedDialChild(
+              label: "Adicionar vários produtos",
+              child: const Icon(Icons.add_circle_sharp),
+              onTap: addMultiple,
             )
-            // SpeedDialChild(
-            //   label: "Adicionar vários produtos",
-            //   child: const Icon(Icons.add_circle_sharp),
-            //   onTap: addMultiple,
-            // )
            ],
         ),
         appBar: AppBar(
