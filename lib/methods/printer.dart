@@ -94,7 +94,7 @@ Future<Uint8List> _generatePdf(PdfPageFormat format, String title) async {
     );
     pdf.addPage(
       pw.Page(
-        margin: const pw.EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+        margin: const pw.EdgeInsets.all(6),
         build: (context) => pw.Column(
           children: [
             pw.Text(tableName),
