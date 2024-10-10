@@ -64,13 +64,13 @@ class _StateProductsPage extends State<ProductsPage> {
         ] 
       )
     ];
+    setState(() {});
   }
 
   @override
   void initState() {
     _getRows().then((val) {
       _built = true;
-      setState(() {});
     });
     super.initState();
   }
@@ -115,8 +115,6 @@ class _StateProductsPage extends State<ProductsPage> {
           ),
         ));
       await _getRows();
-      setState(() {
-      });
       return;
     }
   }
@@ -196,33 +194,27 @@ class _StateProductsPage extends State<ProductsPage> {
       onPressed: disableEditor, 
       icon: const Icon(Icons.delete, color: Colors.red)
     );
-    _getRows().then((value) {
-      setState(() {});
-    });
+    _getRows();
   }
 
 
   void disableEditor() {
     _editorMode = false;
     _leading = null;
-    _getRows().then((value) {
-      setState(() {});
-    });
+    _getRows();
   }
 
 
   Future<void> removeProduct(Item produto) async {
     await datahandler.removeItem(produto);
     await _getRows();
-    setState(() {
-    });
   }
 
   Future<void> printTable() async {
     List<Item> data = await datahandler.getItems(widget.id);
     if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) =>  PrintPage(type: 0, data: data, tableName: widget.name))
+      builder: (context) =>  PrintPage(type: 0, data: data, tableName: "${widget.name}      ${widget.date}"))
       );
   }
 
@@ -247,8 +239,6 @@ class _StateProductsPage extends State<ProductsPage> {
       length ++;
     }
     await _getRows();
-    setState(() {
-    });
     if (!mounted) return;
     Navigator.of(context).pop();
   }

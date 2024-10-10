@@ -73,13 +73,14 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
           const DataCell(Text("")),
         ])
     ];
+    setState(() {
+    });
   }
 
   @override
   void initState() {
     _getRows().then((val) {
       _built = true;
-      setState(() {});
     });
     super.initState();
   }
@@ -128,8 +129,6 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
           ),
         ));
       await _getRows();
-      setState(() {
-      });
       return;
       }
       scaffoldMessengerKey
@@ -141,32 +140,6 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
         )
       );
   }
-
-  // Future<void> addMultiple() async {
-  //   final TextEditingController textController = TextEditingController();
-  //   await showDialog(
-  //     context: context, 
-  //     builder: (context) => AlertDialog(
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => paste(textController), 
-  //           child: const Text("Colar")
-  //           ),
-  //         TextButton(
-  //           onPressed: () => textToList(textController.text),
-  //           child: const Text("Adicionar Produtos")
-  //           )
-  //       ],
-  //       content: textFormFieldPers(
-  //         textController,
-  //         "Escreva uma lista no formato NOME PREÇO em cada linha",
-  //         keyboardType: TextInputType.text,
-  //         height: 300
-  //         ),
-  //     )
-  //   );
-  // }
-
   
   int boolToInt(bool boolean) {
     if (boolean) return 1;
@@ -226,26 +199,20 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
       onPressed: disableEditor, 
       icon: const Icon(Icons.delete, color: Colors.red)
     );
-    _getRows().then((value) {
-      setState(() {});
-    });
+    _getRows();
   }
 
 
   void disableEditor() {
     _editorMode = false;
     _leading = null;
-    _getRows().then((value) {
-      setState(() {});
-    });
+    _getRows();
   }
 
 
   Future<void> removeProduct(Item produto) async {
     await datahandler.removeItem(produto);
     await _getRows();
-    setState(() {
-    });
   }
 
 
@@ -256,19 +223,6 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
       builder: (context) =>  PrintPage(type: 1, data: data, tableName: "${widget.name}      ${widget.date}"))
       );
   }
-
-  // void paste(TextEditingController controller) {
-  //   Clipboard.getData(Clipboard.kTextPlain).then((value) {
-  //     setState(() {
-  //     controller.text = value!.text.toString();
-  //     });
-  //   }); 
-  // }
-  
-
-  // void textToList(String text) {
-  //   return;
-  // }
 
 
   @override
@@ -295,11 +249,6 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
               child: const Icon(Icons.print),
               onTap: printTable
             )
-            // SpeedDialChild(
-            //   label: "Adicionar vários produtos",
-            //   child: const Icon(Icons.add_circle_sharp),
-            //   onTap: addMultiple,
-            // )
            ],
         ),
         appBar: AppBar(
