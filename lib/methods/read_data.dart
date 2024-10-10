@@ -124,8 +124,7 @@ class DataHandler {
 
 
   Future<List<Tables>> getTables() async {
-    final List<Map<String, Object?>> tables = await db.query("tables",
-    orderBy: 'date DESC');
+    final List<Map<String, Object?>> tables = await db.query("tables");
     if (tables.isEmpty) return [];
     return [
       for (
@@ -137,7 +136,7 @@ class DataHandler {
         }
       in tables)
       Tables(name: name, id: id, type: type, date: date)
-    ];
+    ].reversed.toList();
   }
 
 
