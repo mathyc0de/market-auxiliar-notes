@@ -34,7 +34,7 @@ class PrintPage extends StatelessWidget {
 
   List<List<String>> getData() {
     final int length = data.length;
-    final int collumns = length ~/ 32 + 1;
+    final int collumns = length ~/ 33 + 1;
     final List<List<String>> result;
     final NumberFormat f = NumberFormat.currency(symbol: "R\$");
     if (type == 1) {
@@ -76,7 +76,7 @@ class PrintPage extends StatelessWidget {
     if (type == 1) {
       return ['Produto', 'Preço', 'Peso / Qtd', 'Valores'];
     }
-    if (data.length <= 33) {
+    if (data.length <= 32) {
         return ['Produto', 'Preço'];
     }
     return ["Coluna 1" , "Coluna 2", "Coluna 3"];
