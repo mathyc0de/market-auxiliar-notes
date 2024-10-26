@@ -23,11 +23,8 @@ Market Auxiliar Notes é um projeto Flutter que gerencia itens e tabelas em um b
 
 ## Showcase
 
-<img src="https://github.com/user-attachments/assets/48d0c1ed-1e9b-4cbf-a354-02f57fb407dc" width="480" height="854">
-<img src="https://github.com/user-attachments/assets/07e8f051-e5de-45c3-b492-6b8195e77bf4" width="480" height="854">
+
 <img src="https://github.com/user-attachments/assets/817c153c-7c03-4092-899e-adfb8e111fb2" width="480" height="854">
-<img src="https://github.com/user-attachments/assets/086e05e8-fb15-4683-968c-5b7ebe045380" width="480" height="854">
-<img src="https://github.com/user-attachments/assets/36b88727-d99b-4e28-98ea-742df5dcf4d0" width="480" height="854">
 
 ## Contribuição:
 
