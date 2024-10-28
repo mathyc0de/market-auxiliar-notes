@@ -3,6 +3,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fruteira/main.dart';
 import 'package:fruteira/methods/printer.dart';
 import 'package:fruteira/methods/read_data.dart';
+import 'package:fruteira/methods/str_manipulation.dart';
 import 'package:fruteira/widgets/buttons.dart';
 import 'package:fruteira/widgets/loadscreen.dart';
 import 'package:intl/intl.dart' show NumberFormat;
@@ -112,7 +113,7 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
                     onPressed: () async {
                       if (nameController.text.isEmpty || priceController.text.isEmpty) return;
                       await datahandler.insertItem(Item(
-                        name: nameController.text, 
+                        name: nameController.text.capitalize(), 
                         price: double.parse(priceController.text.replaceFirst(RegExp(r','), '.')), 
                         listid: widget.id,
                         wtype: boolToInt(!unitary),
@@ -172,7 +173,7 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
                   onPressed: () async {
                     if (nameController.text.isEmpty || priceController.text.isEmpty || weightController.text.isEmpty) return;
                     await datahandler.updateItem(Item(
-                      name: nameController.text, 
+                      name: nameController.text.capitalize(), 
                       price: double.parse(priceController.text.replaceFirst(RegExp(r','), '.')), 
                       listid: widget.id,
                       weight: double.parse(weightController.text.replaceFirst(RegExp(r','), '.')),

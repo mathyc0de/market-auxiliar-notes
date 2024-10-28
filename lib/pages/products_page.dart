@@ -100,7 +100,7 @@ class _StateProductsPage extends State<ProductsPage> {
                     onPressed: () async {
                       if (nameController.text.isEmpty || priceController.text.isEmpty) return;
                       await datahandler.insertItem(Item(
-                        name: nameController.text, 
+                        name: nameController.text.capitalize(), 
                         price: double.parse(priceController.text.replaceFirst(RegExp(r','), '.')),
                         wtype: boolToInt(!unitary), 
                         listid: widget.id));
@@ -167,7 +167,7 @@ class _StateProductsPage extends State<ProductsPage> {
                   onPressed: () async {
                     if (nameController.text.isEmpty || priceController.text.isEmpty) return;
                     await datahandler.updateItem(Item(
-                      name: nameController.text, 
+                      name: nameController.text.capitalize(), 
                       price: double.parse(priceController.text.replaceFirst(RegExp(r','), '.')), 
                       listid: widget.id,
                       wtype: boolToInt(!unitary),

@@ -70,7 +70,7 @@ List<Item>? textToList(String text, int listid) {
     final (String name, double price) = retriveInfo(line.split(' '));
     result.add(
       Item(
-        name: name, 
+        name: name.capitalize(), 
         price: price, 
         listid: listid
       )
@@ -79,3 +79,8 @@ List<Item>? textToList(String text, int listid) {
   return result;
 }
 
+extension StringExtensions on String { 
+  String capitalize() { 
+    return "${this[0].toUpperCase()}${substring(1)}"; 
+  } 
+}
