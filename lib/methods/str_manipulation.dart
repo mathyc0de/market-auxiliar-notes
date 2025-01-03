@@ -59,6 +59,15 @@ int? getNumeric(List<String> s) {
   return (name, price);
 }
 
+String cutStr(String str, {int maxSize = 21}) {
+  if (str.length <= maxSize) {
+    return str;
+  }
+  else {
+    return str.substring(0, 21);
+  }
+}
+
 
 
 List<Item>? textToList(String text, int listid) {
@@ -70,7 +79,7 @@ List<Item>? textToList(String text, int listid) {
     final (String name, double price) = retriveInfo(line.split(' '));
     result.add(
       Item(
-        name: name.capitalize(), 
+        name: cutStr(name).capitalize(), 
         price: price, 
         listid: listid
       )

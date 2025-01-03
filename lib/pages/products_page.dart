@@ -230,9 +230,9 @@ class _StateProductsPage extends State<ProductsPage> {
     final List<Item>? result = textToList(text, listid);
     if (result == null) return;
     for (final Item item in result) {
-      if (length >= 99) {
+      if (length >= 96) {
         scaffoldMessengerKey.currentState!.showSnackBar(const SnackBar(
-          content: Text("O limite de 99 Produtos foi atingido, os excedentes não foran adicionados")));
+          content: Text("O limite de 96 Produtos foi atingido, os excedentes não foram adicionados")));
         break;
         }
       datahandler.insertItem(item);
