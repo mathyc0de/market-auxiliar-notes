@@ -2,14 +2,36 @@ import 'package:intl/intl.dart' show NumberFormat;
 import 'package:sqflite/sqflite.dart';
 
 
+class Commerce {
+  const Commerce ({
+    this.id,
+    required this.name,
+    required this.type,
+  });
+
+  final int? id;
+  final String name;
+  final int type;
+
+   Map<String, Object?> toMap() {
+    return {
+      'name': name,
+      'type': type
+    };
+  }
+}
+
+
+
 class Item {
   const Item(
-    {this.id, 
-    required this.name, 
-    required this.price, 
-    required this.listid, 
-    this.weight = 1,
-    this.wtype = 1
+    {
+      this.id, 
+      required this.name, 
+      required this.price, 
+      required this.listid,
+      this.weight = 1,
+      this.wtype = 1,
     });
 
   final int? id;
@@ -25,7 +47,7 @@ class Item {
       'price': price,
       'listid': listid,
       'weight': weight,
-      'wtype': wtype
+      'wtype': wtype,
     };
   }
 
@@ -36,6 +58,10 @@ class Item {
         "$name ${f.format(price)}"
         :"$name ${f.format(price)}";
     }
+  
+  String extract() {
+    return "$name $price";
+  }
 
 
   @override
@@ -47,29 +73,51 @@ class Item {
     listid: $listid, 
     weight: $weight,
     wtype: $wtype
-    id: $id)""";
+    id: $id,
+    )""";
   }
 }
 
 class Tables {
-  const Tables({this.id,required this.name, required this.type, required this.date});
+
+  Tables({
+    this.id, 
+    required this.name, 
+    required this.date,
+    required this.commerceid, 
+    this.paid = 0,
+    this.total = 0
+    });
+
   final int? id;
   final String name;
-  final int type;
   final String date;
+  final double paid;
+  final int commerceid;
+  double total;
+  
 
   Map<String, Object?> toMap() {
     return {
       'name': name,
-      'type': type,
-      'date': date
+      'date': date,
+      'paid': paid,
+      'commerceid': commerceid
     };
   }
 
   @override
   String toString() {
-    return 'tables{id: $id, name: $name, type: $type, date: $date}';
+    return """
+      tables{
+        id: $id, 
+        name: $name, 
+        date: $date, 
+        paid: $paid,
+        commerceid: $commerceid
+        }""";
   }
+
 }
 
 
@@ -83,6 +131,36 @@ class DataHandler {
     return tables.toString() + items.toString();
   }
 
+  Future<void> insertCommerce(Commerce commerce) async {
+    await db.insert(
+      "commerces", 
+      commerce.toMap());
+    return;
+  }
+
+  Future<void> removeCommerce(Commerce commerce) async {
+    await db.delete("commerces", where: 'id=${commerce.id}');
+    await db.delete("tables", where: 'commerceid = ${commerce.id}');
+    await db.delete("items", where: "commerceid = ${commerce.id}");
+  }
+
+
+  Future<void> addPayment(Tables table, double value) async {
+    await db.rawUpdate(
+      """
+        UPDATE tables SET paid = $value WHERE id = ${table.id}
+      """,
+    );
+  }
+
+  Future<void> updateCommerce(Commerce commerce) async {
+    await db.rawUpdate(
+      """
+      UPDATE commerces SET name = ? WHERE id = ${commerce.id}
+      """, [commerce.name]
+    );
+  }
+ 
   Future<void> insertTable(Tables table) async {
     await db.insert(
       "tables", 
@@ -122,21 +200,52 @@ class DataHandler {
     return;
   }
 
+  Future<List<Commerce>> getCommerces() async {
+    final List<Map<String, Object?>> commerces = await db.query("commerces");
+    if (commerces.isEmpty) return [];
+    return [
+      for (
+        final {
+        'id': id as int,
+        'name': name as String,
+        'type': type as int
+      } in commerces)
+      Commerce(id: id, name: name, type: type)
+    ];
+  }
 
-  Future<List<Tables>> getTables() async {
-    final List<Map<String, Object?>> tables = await db.query("tables");
+
+  Future<List<Tables>> getTables(int commerceid) async {
+    final List<Map<String, Object?>> tables = await db.query("tables", where: "commerceid = $commerceid", orderBy: "id ASC");
     if (tables.isEmpty) return [];
     return [
       for (
         final {
         'id': id as int,
         'name': name as String,
-        'type': type as int,
-        'date': date as String
+        'date': date as String,
+        'commerceid': commerceid as int,
+        'paid': paid as double,
         }
       in tables)
-      Tables(name: name, id: id, type: type, date: date)
+      Tables(name: name, id: id, date: date, commerceid: commerceid, paid: paid, total: await getTotal(id))
     ].reversed.toList();
+  }
+
+  Future<double> getTotal(int listid) async {
+    double sum = 0;
+    final List<Map<String, Object?>> items = await db.query(
+      'items',
+      where: 'listid = $listid',
+      columns: ['price', 'weight']
+    );
+    for (final {
+      'price': price as double,
+      'weight': weight as double
+    } in items) {
+        sum += price * weight;
+      }
+    return sum;
   }
 
 
@@ -154,7 +263,7 @@ class DataHandler {
         'price': price as double,
         'listid': listid as int,
         'weight': weight as double,
-        'wtype': wtype as int
+        'wtype': wtype as int,
         }
       in items)
       Item(
@@ -163,7 +272,8 @@ class DataHandler {
         listid: listid, 
         price: price, 
         weight: weight, 
-        wtype: wtype)
+        wtype: wtype,
+        )
     ];
   }
 
@@ -179,7 +289,7 @@ class DataHandler {
   Future<void> updateTable(Tables table) async {
     await db.rawUpdate(
       """
-        UPDATE tables SET name = ? WHERE id = ${table.id}
+        UPDATE tables SET name = ?, paid = ${table.paid} WHERE id = ${table.id}
       """,
       [table.name]
     );

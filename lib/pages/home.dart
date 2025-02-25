@@ -1,9 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fruteira/main.dart';
 import 'package:fruteira/methods/read_data.dart';
-import 'package:fruteira/pages/products_page.dart';
-import 'package:fruteira/pages/sell_page.dart';
+import 'package:fruteira/pages/commerce_page.dart';
 import 'package:fruteira/widgets/buttons.dart';
 import 'package:fruteira/widgets/loadscreen.dart';
 
@@ -16,12 +17,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool _built = false;
   bool _editorMode = false;
-  late List<Tables> tables;
+  late List<Commerce> commerces;
 
   @override
   void initState() {
-    datahandler.getTables().then((value) {
-      tables = value;
+    datahandler.getCommerces().then((value) {
+      commerces = value;
       _built = true;
       setState(() {});
     });
@@ -34,17 +35,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> getData() async {
-    tables = await datahandler.getTables();
+    commerces = await datahandler.getCommerces();
     setState(() {
     });
   }
 
-  String __buildDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
-  }
 
-
-  Future<void> addList(BuildContext context) async {
+  Future<void> addCommerce(BuildContext context) async {
     final TextEditingController nameController = TextEditingController();
     bool checkbox = false;
     await showDialog(
@@ -54,31 +51,29 @@ class _HomePageState extends State<HomePage> {
           builder: (context, setState) => SingleChildScrollView(
             child: Column(
               children: [
-                textFormFieldPers(nameController, "Nome da Lista"),
-                    CheckboxListTile(
-                      title: const Text("Lista para Vendas"),
+                textFormFieldPers(nameController, "Nome do Comércio"),
+                CheckboxListTile(
+                      title: const Text("Vendas"),
                       value: checkbox, 
                       onChanged: (value) {
                         setState(() {
                           checkbox = value!;
                         });
-                      }
-                ),
+                  }),
                 ElevatedButton(
                   onPressed: () async {
                     if (nameController.text.isEmpty) return;
-                    await datahandler.insertTable(
-                      Tables(
+                    await datahandler.insertCommerce(
+                      Commerce(
                         name: nameController.text,
                         type: boolToInt(checkbox),
-                        date: __buildDate(DateTime.now())
                         )
                     );
                     await getData();
                     if (!context.mounted) return;
                     Navigator.of(context).pop();
                     }, 
-                  child: const Text("Criar lista"))
+                  child: const Text("Criar comércio"))
               ],
             ),
           ),
@@ -89,31 +84,30 @@ class _HomePageState extends State<HomePage> {
 
 
   
-  Future<void> edit(Tables table) async {
-    final TextEditingController nameController = TextEditingController(text: table.name);
+  Future<void> edit(Commerce commerce) async {
+    final TextEditingController nameController = TextEditingController(text: commerce.name);
     await showDialog(
       context: context, 
       builder: (context) => AlertDialog(
         content: SingleChildScrollView(
             child: Column(
               children: [
-                textFormFieldPers(nameController, "Nome da Lista"),
+                textFormFieldPers(nameController, "Nome do comércio"),
                 ElevatedButton(
                   onPressed: () async {
                     if (nameController.text.isEmpty) return;
-                    await datahandler.updateTable(
-                      Tables(
+                    await datahandler.updateCommerce(
+                      Commerce(
                         name: nameController.text,
-                        type: table.type,
-                        date: table.date,
-                        id: table.id,
+                        type: commerce.type,
+                        id: commerce.id,
                         )
                     );
                     await getData();
                     if (!context.mounted) return;
                     Navigator.of(context).pop();
                     }, 
-                  child: const Text("Criar lista"))
+                  child: const Text("Editar comércio"))
               ],
             ),
           ),
@@ -127,6 +121,26 @@ class _HomePageState extends State<HomePage> {
       _editorMode = true;
     });
     return;
+  }
+
+  Color getRandomColor() {
+    final Random random = Random();
+    Color color;
+    int R, G, B;
+    do {
+      (R, G, B) = (
+        random.nextInt(256),
+        random.nextInt(256),
+        random.nextInt(256)
+        );
+      color = Color.fromARGB(
+        255,
+        random.nextInt(256),
+        random.nextInt(256),
+        random.nextInt(256),
+      );
+    } while ((R + G + B) > 700 || (R + G + B) < 50);
+    return color;
   }
 
   Future<bool> _confirmDelete(BuildContext context, String tableName) async {
@@ -154,18 +168,17 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     if (!_built) return loadScreen();
     return Scaffold(
-      
       floatingActionButton:SpeedDial(
         animatedIcon: AnimatedIcons.menu_close,
         children: [
           SpeedDialChild(
             child: const Icon(Icons.add),
-            label: 'Adicionar nova lista',
-            onTap: ()  => addList(context),
+            label: 'Adicionar novo comércio',
+            onTap: ()  => addCommerce(context),
           ),
           SpeedDialChild(
             child: const Icon(Icons.delete),
-            label: 'Deletar lista',
+            label: 'Deletar comércio',
             onTap: removeList,
           ),
         ],
@@ -177,41 +190,28 @@ class _HomePageState extends State<HomePage> {
         leading: _editorMode? const Icon(Icons.do_not_disturb_on_rounded, color: Colors.red): null,
       ),
       body: 
-      tables.isNotEmpty?
+      commerces.isNotEmpty?
         ListView(
           children: [
-            for (int index = 0; index <= tables.length - 1; index++)
+            for (int index = 0; index <= commerces.length - 1; index++)
             ListTile(
-              onLongPress: () => edit(tables[index]),
+              onLongPress: () => edit(commerces[index]),
               onTap: () async {
                 if (!_editorMode) {
-                  final Tables table = tables[index];
-                  table.type == 0 ?
-
+                  final Commerce commerce = commerces[index];
+                  
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => ProductsPage(
-                        id: table.id!, 
-                        name: table.name,
-                        date: table.date,
-                        ),
-                      )
-                  ):
-
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ProductsPageWithWeight(
-                        id: table.id!, 
-                        name: table.name,
-                        date: table.date
+                      builder: (context) => CommercePage(
+                          commerce: commerce,
                         ),
                       )
                   );
                 }
                 else {
-                  final Tables table = tables[index];
-                  if (await _confirmDelete(context, table.name)) {
-                    datahandler.removeTable(table);
+                  final Commerce commerce = commerces[index];
+                  if (await _confirmDelete(context, commerce.name)) {
+                    datahandler.removeCommerce(commerce);
                     getData();
                   }
                   _editorMode = false;
@@ -219,21 +219,31 @@ class _HomePageState extends State<HomePage> {
                     });
                 }
               },
-
-              title: Row(
-                children: [
-                  Text(tables[index].name),
-                  const Spacer(),
-                  Text(tables[index].date, style: const TextStyle(color: Colors.grey))
-                ]
-                )
+              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              minVerticalPadding: 0,
+              title: Container(
+                decoration: BoxDecoration(
+                  boxShadow: kElevationToShadow[12],
+                  border: Border.all(color: Colors.black),
+                  color: getRandomColor(), 
+                  borderRadius: const BorderRadius.all(Radius.circular(4))),
+                height: 100,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(commerces[index].name, 
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 25),),
+                    // Text(tables[index].date, style: const TextStyle(color: Colors.grey))
+                  ]
+                  ),
+              )
               ),
             ],
           )
       :
       const Align(
         alignment: Alignment.center,
-        child: Text("Crie uma nova lista!"))
+        child: Text("Adicione um novo comércio!"))
     );
   }
 }

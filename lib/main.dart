@@ -16,12 +16,22 @@ void main() async {
     onCreate: (db, version) {
       db.execute(
         """
-        CREATE TABLE tables(id INTEGER PRIMARY KEY, name TEXT, type INTEGER, date TEXT);
+        CREATE TABLE commerces(id INTEGER PRIMARY KEY, name TEXT, type INTEGER)
+        """
+      );
+      db.execute(
+        """
+        CREATE TABLE tables(id INTEGER PRIMARY KEY, name TEXT, date TEXT, paid FLOAT, commerceid INTEGER);
         """
       );
       db.execute(
         """
         CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT UNIQUE, price FLOAT, weight FLOAT, listid INTEGER, wtype INTEGER)
+        """
+      );
+      db.execute(
+        """
+        CREATE TABLE transactions(id INTEGER PRIMARY KEY, commerceid INTEGER, value FLOAT, date TEXT)
         """
       );
     },
@@ -36,7 +46,9 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      darkTheme: ThemeData(),
+      darkTheme: ThemeData(
+        // brightness: Brightness.dark,
+      ),
       debugShowCheckedModeBanner: false,
       theme: ThemeData( 
         colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 186, 255, 23)),

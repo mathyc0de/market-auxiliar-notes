@@ -10,10 +10,18 @@ import 'package:fruteira/widgets/loadscreen.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 
 class ProductsPage extends StatefulWidget {
-  const ProductsPage({super.key, required this.id, required this.name, required this.date});
+  const ProductsPage({
+    super.key, 
+    required this.id, 
+    required this.name, 
+    required this.date, 
+    required this.commerce
+    });
+
   final String name;
   final int id;
   final String date;
+  final String commerce;
   
   @override
   State<ProductsPage> createState() => _StateProductsPage();
@@ -242,6 +250,18 @@ class _StateProductsPage extends State<ProductsPage> {
     if (!mounted) return;
     Navigator.of(context).pop();
   }
+
+  Future<void> rawCopy() async {
+    String str = "";
+    final List<Item> items = await datahandler.getItems(widget.id);
+    for (Item item in items) {
+      str += "${item.extract()}\n";
+    }
+     await Clipboard.setData(ClipboardData(text: str));
+    scaffoldMessengerKey.currentState!.showSnackBar(const SnackBar(
+      content: Text("Dados copiados para a área de transferência")));
+      
+  }
   
 
 
@@ -275,12 +295,17 @@ class _StateProductsPage extends State<ProductsPage> {
               label: "Adicionar vários produtos",
               child: const Icon(Icons.add_circle_sharp),
               onTap: addMultiple,
+            ),
+            SpeedDialChild(
+              label: "Copiar os dados",
+              child: const Icon(Icons.copy),
+              onTap: rawCopy
             )
            ],
         ),
         appBar: AppBar(
           backgroundColor: const Color.fromARGB(255, 147, 199, 27),
-          title: Text(widget.name,
+          title: Text("${widget.commerce} ${widget.name} ${widget.date}",
           style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
           centerTitle: true,
           leading: _leading

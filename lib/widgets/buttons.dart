@@ -22,13 +22,20 @@ SpeedDial multipleFloatingActionButtons() {
 
 
 
-SizedBox textFormFieldPers(TextEditingController controller, String labelText, {TextInputType keyboardType = TextInputType.name, double? height, int maxLength = 21}){
+SizedBox textFormFieldPers(TextEditingController controller, String labelText, {
+  TextInputType keyboardType = TextInputType.name, 
+  double? height, 
+  int maxLength = 21,
+  bool enabled = true
+  }){
+    
   return SizedBox(
     width: 300,
     child: Padding(
       padding: const EdgeInsets.all(5), 
       child: 
     TextFormField(
+      enabled: enabled,
       maxLength: maxLength,
       controller: controller,
       keyboardType: keyboardType,

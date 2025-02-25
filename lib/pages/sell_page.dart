@@ -10,10 +10,20 @@ import 'package:intl/intl.dart' show NumberFormat;
 
 
 class ProductsPageWithWeight extends StatefulWidget {
-  const ProductsPageWithWeight({super.key, required this.id, required this.name, required this.date});
+  const ProductsPageWithWeight({
+    super.key, 
+    required this.id, 
+    required this.name, 
+    required this.date,
+    required this.commerce,
+    required this.paid
+    });
+
   final String name;
   final int id;
   final String date;
+  final String commerce;
+  final double paid;
   
   @override
   State<ProductsPageWithWeight> createState() => _StateProductsPageWithWeight();
@@ -67,12 +77,20 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
           ),
         ] 
       ),
-      if (items.isNotEmpty) DataRow(
+      if (items.isNotEmpty) 
+        DataRow(cells: [
+        const DataCell(Text("Valor Pago")),
+        DataCell(Text(f.format(widget.paid))),
+        const DataCell(Text(""))
+        ]),
+      DataRow(
         cells: [
           const DataCell(Text("Total")),
           DataCell(Text(f.format(sumTable(items)))),
           const DataCell(Text("")),
-        ])
+        ]),
+
+        
     ];
     setState(() {
     });
@@ -100,8 +118,8 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
               child: Column(
                 children: [
                   textFormFieldPers(nameController, "Nome do Produto", keyboardType: TextInputType.name),
-                  textFormFieldPers(priceController, "Preço", keyboardType: TextInputType.number),
-                  textFormFieldPers(weightController, !unitary? "Peso(kg)": "Unidades" , keyboardType: TextInputType.number),
+                  textFormFieldPers(priceController, "Preço", keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false)),
+                  textFormFieldPers(weightController, !unitary? "Peso(kg)": "Unidades" , keyboardType: TextInputType.numberWithOptions(decimal: unitary? false : true, signed: false)),
                   CheckboxListTile(
                       value: unitary,
                       onChanged: (val) {
@@ -249,12 +267,12 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
               label: "Imprimir Tabela",
               child: const Icon(Icons.print),
               onTap: printTable
-            )
+            ),
            ],
         ),
         appBar: AppBar(
           backgroundColor: const Color.fromARGB(255, 147, 199, 27),
-          title: Text(widget.name, style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white),),
+          title: Text("${widget.commerce} ${widget.name} ${widget.date}", style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
           centerTitle: true,
           leading: _leading
           

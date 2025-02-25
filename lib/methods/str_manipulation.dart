@@ -81,7 +81,7 @@ List<Item>? textToList(String text, int listid) {
       Item(
         name: cutStr(name).capitalize(), 
         price: price, 
-        listid: listid
+        listid: listid,
       )
     );
   }
