@@ -50,13 +50,14 @@ int? getNumeric(List<String> s) {
 }
 
 
-(String, double) retriveInfo(List<String> words) {
+(String, double, int) retriveInfo(List<String> words) {
   final List<String> noSpace = checkEmpty(words);
-  final int? idx = getNumeric(noSpace);
-  if (idx == null) return (noSpace.join(" "), 0);
+  final int? idx = getNumeric(noSpace.sublist(0, noSpace.length - 1));
+  if (idx == null) return (noSpace.join(" "), 0, 0);
   final String name = noSpace.sublist(0, idx).join(" ");
   final double price = double.parse(noSpace[idx].replaceAll(RegExp(r','), '.'));
-  return (name, price);
+  final int wtype = int.parse(noSpace.last);
+  return (name, price, wtype);
 }
 
 String cutStr(String str, {int maxSize = 21}) {
@@ -76,12 +77,13 @@ List<Item>? textToList(String text, int listid) {
   List<String> lines = text.split('\n');
   for (String line in lines) {
     line = cleanLine(line);
-    final (String name, double price) = retriveInfo(line.split(' '));
+    final (String name, double price, int wtype) = retriveInfo(line.split(' '));
     result.add(
       Item(
         name: cutStr(name).capitalize(), 
         price: price, 
         listid: listid,
+        wtype: wtype
       )
     );
   }
