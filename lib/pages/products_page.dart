@@ -275,6 +275,11 @@ class _StateProductsPage extends State<ProductsPage> {
               label: "Adicionar vários produtos",
               child: const Icon(Icons.add_circle_sharp),
               onTap: addMultiple,
+            ),
+            SpeedDialChild(
+              label: "Copiar os dados",
+              child: const Icon(Icons.copy),
+              onTap: () async {await rawCopy();}
             )
            ],
         ),
