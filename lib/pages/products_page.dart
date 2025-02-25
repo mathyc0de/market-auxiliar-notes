@@ -299,7 +299,7 @@ class _StateProductsPage extends State<ProductsPage> {
             SpeedDialChild(
               label: "Copiar os dados",
               child: const Icon(Icons.copy),
-              onTap: rawCopy
+              onTap: () async {await rawCopy();}
             )
            ],
         ),
