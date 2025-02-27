@@ -143,7 +143,7 @@ class _HomePageState extends State<HomePage> {
     return color;
   }
 
-  Future<bool> _confirmDelete(BuildContext context, String tableName) async {
+  Future<bool> _confirmDelete(BuildContext context, String commerce) async {
     bool? result = await showDialog(
       context: context, 
       builder: (context) => AlertDialog(
@@ -157,7 +157,7 @@ class _HomePageState extends State<HomePage> {
               child: const Text('Confirmar'),
             ),
         ],
-        content: Text("Você tem certeza que deseja deletar a lista $tableName?")
+        content: Text("Você tem certeza que deseja deletar a lista $commerce?")
       )
     );
     result ??= false;

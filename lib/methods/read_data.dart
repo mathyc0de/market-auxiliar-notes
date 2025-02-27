@@ -140,8 +140,11 @@ class DataHandler {
 
   Future<void> removeCommerce(Commerce commerce) async {
     await db.delete("commerces", where: 'id=${commerce.id}');
+    final List<Map<String, Object?>> tables = await db.query("tables", where: 'commerceid = ${commerce.id}', columns: ['id']);
+    for (Map<String, Object?> table in tables) {
+      await db.delete("items", where: "listid = ${table['id']}");
+    }
     await db.delete("tables", where: 'commerceid = ${commerce.id}');
-    await db.delete("items", where: "commerceid = ${commerce.id}");
   }
 
 
