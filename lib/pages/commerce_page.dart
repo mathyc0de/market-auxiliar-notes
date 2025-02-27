@@ -142,7 +142,9 @@ class _CommercePageState extends State<CommercePage> {
                     }),
                   ElevatedButton(
                     onPressed: () async {
-                      if (nameController.text.isEmpty) return;
+                      if (nameController.text.isEmpty) {
+                        nameController.text = table.name;
+                      }
                       await datahandler.updateTable(
                         Tables(
                           name: nameController.text,
