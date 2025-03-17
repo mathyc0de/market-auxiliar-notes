@@ -29,11 +29,6 @@ void main() async {
         CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT UNIQUE, price FLOAT, weight FLOAT, listid INTEGER, wtype INTEGER)
         """
       );
-      db.execute(
-        """
-        CREATE TABLE transactions(id INTEGER PRIMARY KEY, commerceid INTEGER, value FLOAT, date TEXT)
-        """
-      );
     },
     version: 1
   );

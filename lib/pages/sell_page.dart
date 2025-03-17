@@ -16,14 +16,12 @@ class ProductsPageWithWeight extends StatefulWidget {
     required this.name, 
     required this.date,
     required this.commerce,
-    required this.paid
     });
 
   final String name;
   final int id;
   final String date;
   final String commerce;
-  final double paid;
   
   @override
   State<ProductsPageWithWeight> createState() => _StateProductsPageWithWeight();
@@ -78,11 +76,6 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
         ] 
       ),
       if (items.isNotEmpty) 
-        DataRow(cells: [
-        const DataCell(Text("Valor Pago")),
-        DataCell(Text(f.format(widget.paid))),
-        const DataCell(Text(""))
-        ]),
       DataRow(
         cells: [
           const DataCell(Text("Total")),
