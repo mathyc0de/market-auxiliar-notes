@@ -3,6 +3,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fruteira/main.dart';
 import 'package:fruteira/methods/read_data.dart';
 import 'package:fruteira/pages/products_page.dart';
+import 'package:fruteira/pages/sell_page.dart';
 import 'package:fruteira/widgets/buttons.dart';
 import 'package:fruteira/widgets/loadscreen.dart';
 import 'package:intl/intl.dart' show NumberFormat;
@@ -64,7 +65,7 @@ class _CommercePageState extends State<CommercePage> {
                       Tables(
                         name: nameController.text,
                         date: __buildDate(DateTime.now()),
-                        commerceid: widget.commerce.id!
+                        commerceid: widget.commerce.id!,
                         )
                     );
                     await getData();
@@ -152,9 +153,21 @@ class _CommercePageState extends State<CommercePage> {
               onTap: () async {
                 if (!_editorMode) {
                   final Tables table = tables[index];
+                  widget.commerce.type == 0 ?
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => ProductsPage(
+                        commerce: widget.commerce.name,
+                        id: table.id!, 
+                        name: table.name,
+                        date: table.date,
+                        ),
+                      )
+                  )
+                  :
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ProductsPageWithWeight(
                         commerce: widget.commerce.name,
                         id: table.id!, 
                         name: table.name,
