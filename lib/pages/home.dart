@@ -187,7 +187,15 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: const Color.fromARGB(255, 147, 199, 27),
         title: const Text("Listas da Fruteira", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white),),
         centerTitle: true,
-        leading: _editorMode? const Icon(Icons.do_not_disturb_on_rounded, color: Colors.red): null,
+        leading: _editorMode? IconButton(
+          icon: const Icon(Icons.do_not_disturb_on_rounded), 
+          onPressed: () {
+            _editorMode = false;
+            setState(() {
+            });
+          }, 
+          color: Colors.red)
+          : null,
       ),
       body: 
       commerces.isNotEmpty?

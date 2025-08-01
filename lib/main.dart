@@ -4,6 +4,7 @@ import 'package:fruteira/pages/home.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 late final Database db;
 late final DataHandler datahandler;
@@ -11,6 +12,7 @@ late final DataHandler datahandler;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Intl.defaultLocale = 'pt_BR';
+  await dotenv.load(fileName: ".env");
   db = await openDatabase(
     join(await getDatabasesPath(),'data.db'),
     onCreate: (db, version) {

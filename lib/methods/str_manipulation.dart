@@ -88,6 +88,16 @@ List<Item>? textToList(String text, int listid) {
   return result;
 }
 
+List<Item> speechToList(List items, int listid) {
+  List<Item> result = [];
+  for (int i = 0; i < items.length; i++) {
+    var item = items[i];
+    int formato = item['formato'] == 'kg' ? 1 : 0;
+    result.add(Item(name: cutStr(item['nome']).capitalize(), price: double.parse("${item['preço']}"), listid: listid, weight: double.parse("${item['quantidade']}"), wtype: formato));
+  }
+  return result;
+}
+
 extension StringExtensions on String { 
   String capitalize() { 
     return "${this[0].toUpperCase()}${substring(1)}"; 

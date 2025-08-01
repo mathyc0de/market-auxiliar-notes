@@ -143,6 +143,7 @@ class _StateProductsPage extends State<ProductsPage> {
             )
         ],
         content: textFormFieldPers(
+          maxLength: 2000,
           textController,
           "Escreva uma lista no formato NOME PREÇO em cada linha",
           keyboardType: TextInputType.text,

@@ -5,8 +5,10 @@ import 'package:fruteira/methods/printer.dart';
 import 'package:fruteira/methods/read_data.dart';
 import 'package:fruteira/methods/str_manipulation.dart';
 import 'package:fruteira/widgets/buttons.dart';
+import 'package:fruteira/widgets/dialogs.dart' show AddManyDialog;
 import 'package:fruteira/widgets/loadscreen.dart';
 import 'package:intl/intl.dart' show NumberFormat;
+import 'package:fruteira/widgets/speech2text.dart';
 
 
 class ProductsPageWithWeight extends StatefulWidget {
@@ -152,6 +154,24 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
         )
       );
   }
+
+ 
+
+
+  void _addProductVoice() {
+    showDialog(
+      context: context, 
+      builder: (context) => SpeechDialog(listid: widget.id)
+    ).then((val) => _getRows());
+  }
+
+  void _addManyProducts() {
+    showDialog(
+      context: context, 
+      builder: (context) => AddManyDialog(listid: widget.id)
+    ).then((val) => _getRows());
+  }
+
   
   int boolToInt(bool boolean) {
     if (boolean) return 1;
@@ -252,6 +272,17 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
               onTap: addProduct,
             ),
             SpeedDialChild(
+              label: "Adicionar vários produtos",
+              child: const Icon(Icons.add_circle),
+              onTap: _addManyProducts
+            ),
+            SpeedDialChild(
+              label: "Adicionar vários produtos por voz",
+              child: const Icon(Icons.mic),
+              onTap: _addProductVoice,
+
+            ),
+            SpeedDialChild(
               label: "Remover Produto",
               child: const Icon(Icons.delete),
               onTap: editorMode
@@ -260,7 +291,7 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
               label: "Imprimir Tabela",
               child: const Icon(Icons.print),
               onTap: printTable
-            ),
+            )
            ],
         ),
         appBar: AppBar(
