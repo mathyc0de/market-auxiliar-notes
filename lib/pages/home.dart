@@ -1,12 +1,12 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:fruteira/main.dart';
-import 'package:fruteira/methods/read_data.dart';
+import 'package:fruteira/methods/database.dart';
 import 'package:fruteira/pages/commerce_page.dart';
 import 'package:fruteira/widgets/buttons.dart';
 import 'package:fruteira/widgets/loadscreen.dart';
+
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,102 +17,38 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool _built = false;
   bool _editorMode = false;
+  int _navBarIndex = 0;
   late List<Commerce> commerces;
+  List<Commerce> displaiedCommerces = [];
 
   @override
   void initState() {
-    datahandler.getCommerces().then((value) {
+    db.getCommerces().then((value) {
       commerces = value;
+      updateDisplaiedCommerces(_navBarIndex);
       _built = true;
       setState(() {});
     });
     super.initState();
   }
 
-  int boolToInt(bool boolean) {
-    if (boolean) return 1;
-    return 0;
-  }
-
   Future<void> getData() async {
-    commerces = await datahandler.getCommerces();
+    commerces = await db.getCommerces();
+    updateDisplaiedCommerces(_navBarIndex);
     setState(() {
     });
   }
 
 
   Future<void> addCommerce(BuildContext context) async {
-    final TextEditingController nameController = TextEditingController();
-    bool checkbox = false;
-    await showDialog(
-      context: context, 
-      builder: (context) => AlertDialog(
-        content: StatefulBuilder(
-          builder: (context, setState) => SingleChildScrollView(
-            child: Column(
-              children: [
-                textFormFieldPers(nameController, "Nome do Comércio"),
-                CheckboxListTile(
-                      title: const Text("Vendas"),
-                      value: checkbox, 
-                      onChanged: (value) {
-                        setState(() {
-                          checkbox = value!;
-                        });
-                  }),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (nameController.text.isEmpty) return;
-                    await datahandler.insertCommerce(
-                      Commerce(
-                        name: nameController.text,
-                        type: boolToInt(checkbox),
-                        )
-                    );
-                    await getData();
-                    if (!context.mounted) return;
-                    Navigator.of(context).pop();
-                    }, 
-                  child: const Text("Criar comércio"))
-              ],
-            ),
-          ),
-        ),
-      ));
+    await showDialog(context: context, builder: (context) => AddCommerceDialog(type: _navBarIndex == 0? "vendas" : "precos"));
+    await getData();
     return;
   }
-
-
   
   Future<void> edit(Commerce commerce) async {
-    final TextEditingController nameController = TextEditingController(text: commerce.name);
-    await showDialog(
-      context: context, 
-      builder: (context) => AlertDialog(
-        content: SingleChildScrollView(
-            child: Column(
-              children: [
-                textFormFieldPers(nameController, "Nome do comércio"),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (nameController.text.isEmpty) return;
-                    await datahandler.updateCommerce(
-                      Commerce(
-                        name: nameController.text,
-                        type: commerce.type,
-                        id: commerce.id,
-                        )
-                    );
-                    await getData();
-                    if (!context.mounted) return;
-                    Navigator.of(context).pop();
-                    }, 
-                  child: const Text("Editar comércio"))
-              ],
-            ),
-          ),
-        ),
-    );
+    await showDialog(context: context, builder: (context) => EditCommerceDialog(commerce: commerce));
+    await getData();
     return;
   }
 
@@ -164,6 +100,13 @@ class _HomePageState extends State<HomePage> {
     return result;
   }
 
+  void updateDisplaiedCommerces(int index) {
+    _navBarIndex = index;
+    displaiedCommerces = commerces.where((element) => element.type == (index == 0? "vendas": "precos")).toList();
+    setState(() {
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_built) return loadScreen();
@@ -197,16 +140,15 @@ class _HomePageState extends State<HomePage> {
           color: Colors.red)
           : null,
       ),
-      body: 
-      commerces.isNotEmpty?
+      body: displaiedCommerces.isNotEmpty?
         ListView(
           children: [
-            for (int index = 0; index <= commerces.length - 1; index++)
+            for (int index = 0; index <= displaiedCommerces.length - 1; index++)
             ListTile(
-              onLongPress: () => edit(commerces[index]),
+              onLongPress: () => edit(displaiedCommerces[index]),
               onTap: () async {
                 if (!_editorMode) {
-                  final Commerce commerce = commerces[index];
+                  final Commerce commerce = displaiedCommerces[index];
                   
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -217,9 +159,9 @@ class _HomePageState extends State<HomePage> {
                   );
                 }
                 else {
-                  final Commerce commerce = commerces[index];
+                  final Commerce commerce = displaiedCommerces[index];
                   if (await _confirmDelete(context, commerce.name)) {
-                    datahandler.removeCommerce(commerce);
+                    db.removeCommerce(commerce.id!);
                     getData();
                   }
                   _editorMode = false;
@@ -239,7 +181,7 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(commerces[index].name, 
+                    Text(displaiedCommerces[index].name, 
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 25),),
                     // Text(tables[index].date, style: const TextStyle(color: Colors.grey))
                   ]
@@ -251,7 +193,86 @@ class _HomePageState extends State<HomePage> {
       :
       const Align(
         alignment: Alignment.center,
-        child: Text("Adicione um novo comércio!"))
+        child: Text("Adicione um novo comércio!")),
+
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _navBarIndex,
+        onTap: updateDisplaiedCommerces,
+        items: const [
+            BottomNavigationBarItem(
+            icon: Icon(Icons.currency_exchange),
+            label: "Listas de Vendas",
+            ),
+          BottomNavigationBarItem(icon: Icon(Icons.price_change),
+            label: "Listas de Preços"
+          )
+        ]
+        )
+      );
+  }
+}
+
+
+
+
+class AddCommerceDialog extends StatelessWidget {
+  AddCommerceDialog({super.key, required this.type});
+  final TextEditingController nameController = TextEditingController();
+  final String type;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: StatefulBuilder(builder: (context, setState) => SingleChildScrollView(
+        child:  Column(
+              children: [
+                textFormFieldPers(nameController, "Nome do Comércio"),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (nameController.text.isEmpty) return;
+                    await db.insertCommerce(
+                      Commerce(
+                        name: nameController.text,
+                        type: type
+                        )
+                    );
+                    Navigator.of(context).pop();
+                    }, 
+                  child: const Text("Criar comércio"))
+              ],
+            ),
+      )),
     );
   }
+}
+
+class EditCommerceDialog extends StatelessWidget {
+  EditCommerceDialog({super.key, required this.commerce}) : nameController = TextEditingController(text: commerce.name);
+  final TextEditingController nameController;
+  final Commerce commerce;
+
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: StatefulBuilder(builder: (context, setState) => SingleChildScrollView(
+        child: Column(
+              children: [
+                textFormFieldPers(nameController, "Nome do comércio"),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (nameController.text.isEmpty) return;
+                    await db.updateCommerce(
+                      commerce.id!, commerce.name 
+                    );
+                    if (!context.mounted) return;
+                    Navigator.of(context).pop();
+                    }, 
+                  child: const Text("Editar comércio"))
+              ],
+            ),
+      )),
+    );
+  }
+
 }

@@ -1,4 +1,4 @@
-import 'package:fruteira/methods/read_data.dart';
+import 'package:fruteira/methods/database.dart';
 
 bool isNumeric(String? s) {
   if(s == null) {
@@ -70,7 +70,7 @@ String cutStr(String str, {int maxSize = 21}) {
 
 
 
-List<Item>? textToList(String text, int listid) {
+List<Item>? textToList(String text, int tableId) {
   if (text == '') return null;
   List<Item>? result = [];
   List<String> lines = text.split('\n');
@@ -81,19 +81,18 @@ List<Item>? textToList(String text, int listid) {
       Item(
         name: cutStr(name).capitalize(), 
         price: price, 
-        listid: listid
+        tableId: tableId
       )
     );
   }
   return result;
 }
 
-List<Item> speechToList(List items, int listid) {
+List<Item> speechToList(List items, int tableId) {
   List<Item> result = [];
   for (int i = 0; i < items.length; i++) {
     var item = items[i];
-    int formato = item['formato'] == 'kg' ? 1 : 0;
-    result.add(Item(name: cutStr(item['nome']).capitalize(), price: double.parse("${item['preço']}"), listid: listid, weight: double.parse("${item['quantidade']}"), wtype: formato));
+    result.add(Item(name: cutStr(item['nome']).capitalize(), price: double.parse("${item['preço']}"), tableId: tableId, quantity: double.parse("${item['quantidade']}"), type: item["formato"]));
   }
   return result;
 }

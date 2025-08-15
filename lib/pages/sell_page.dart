@@ -1,14 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:fruteira/main.dart';
 import 'package:fruteira/methods/printer.dart';
-import 'package:fruteira/methods/read_data.dart';
+import 'package:fruteira/methods/database.dart';
 import 'package:fruteira/methods/str_manipulation.dart';
 import 'package:fruteira/widgets/buttons.dart';
 import 'package:fruteira/widgets/dialogs.dart' show AddManyDialog;
 import 'package:fruteira/widgets/loadscreen.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:fruteira/widgets/speech2text.dart';
+
+
+String unitaryCheck(bool boolean) {
+    if (boolean) return "kg";
+    return "un";
+  }
+
+double division(num op1, num op2) => (op1 / op2).toDouble();
+double multiplication(num op1, num op2) => (op1 * op2).toDouble();
+
+void autoComplete(TextEditingController reference, TextEditingController option1, TextEditingController option2, {double Function(num, num) operation = multiplication}) {
+  if (double.tryParse(reference.text) != null) {
+    if (double.tryParse(option2.text) != null) { 
+      option1.text = (operation(double.parse(reference.text), double.parse(option2.text))).toString();
+    }
+    else if (double.tryParse(option1.text) != null) {
+      option2.text = (operation(double.parse(reference.text), double.parse(option1.text))).toString();
+    }
+  }
+}
 
 
 class ProductsPageWithWeight extends StatefulWidget {
@@ -44,13 +63,13 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
   double sumTable(List<Item> items) {
     double total = 0;
     for (Item produto in items) {
-      total += produto.price * produto.weight;
+      total += produto.price * produto.quantity;
     }
     return total;
   }
 
   Future<void> _getRows() async {
-    final List<Item> items = await datahandler.getItems(widget.id);
+    final List<Item> items = await db.getItems(widget.id);
     length = items.length;
     rows = 
     [ 
@@ -67,7 +86,7 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
           DataCell(
             Row(
               children: [
-                Text(produto.wtype == 1? "${produto.weight} kg" : "${produto.weight.toInt()} unidade(s)"),
+                Text("${produto.quantity} ${produto.type}"),
                 if (_editorMode) IconButton(
                   onPressed: () => removeProduct(produto), 
                   icon: const Icon(Icons.do_disturb_on, color: Colors.red)
@@ -101,47 +120,7 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
 
   Future<void> addProduct() async {
     if (length < 32) {
-      bool unitary = false;
-      final TextEditingController nameController = TextEditingController();
-      final TextEditingController priceController = TextEditingController();
-      final TextEditingController weightController = TextEditingController();
-      await showDialog(
-        context: context, 
-        builder: (context) => AlertDialog(
-          content: StatefulBuilder(
-            builder: (context, setState) =>  SingleChildScrollView(
-              child: Column(
-                children: [
-                  textFormFieldPers(nameController, "Nome do Produto", keyboardType: TextInputType.name),
-                  textFormFieldPers(priceController, "Preço", keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false)),
-                  textFormFieldPers(weightController, !unitary? "Peso(kg)": "Unidades" , keyboardType: TextInputType.numberWithOptions(decimal: unitary? false : true, signed: false)),
-                  CheckboxListTile(
-                      value: unitary,
-                      onChanged: (val) {
-                        setState(() => unitary = val!);
-                        },
-                      title: const Text("Unitário"),
-                    ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (nameController.text.isEmpty || priceController.text.isEmpty) return;
-                      await datahandler.insertItem(Item(
-                        name: nameController.text.capitalize(), 
-                        price: double.parse(priceController.text.replaceFirst(RegExp(r','), '.')), 
-                        listid: widget.id,
-                        wtype: boolToInt(!unitary),
-                        weight: double.parse(weightController.text.replaceFirst(RegExp(r','), '.'))
-                        ));
-                      await _getRows();
-                      if (!context.mounted) return;
-                      Navigator.of(context).pop();
-                      }, 
-                    child: const Text("Adicionar produto"))
-                ],
-              ),
-            ),
-          ),
-        ));
+      await showDialog(context: context, builder: (context) => AddProductDialog(tableId: widget.id));
       await _getRows();
       return;
       }
@@ -161,66 +140,26 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
   void _addProductVoice() {
     showDialog(
       context: context, 
-      builder: (context) => SpeechDialog(listid: widget.id)
+      builder: (context) => SpeechDialog(tableid: widget.id)
     ).then((val) => _getRows());
   }
 
   void _addManyProducts() {
     showDialog(
       context: context, 
-      builder: (context) => AddManyDialog(listid: widget.id)
+      builder: (context) => AddManyDialog(tableid: widget.id)
     ).then((val) => _getRows());
   }
 
   
-  int boolToInt(bool boolean) {
-    if (boolean) return 1;
-    return 0;
+  String unitaryCheck(bool boolean) {
+    if (boolean) return "un";
+    return "kg";
   }
 
   Future<void> edit(Item product) async {
-    bool unitary = product.wtype == 1? false : true;
-    final TextEditingController nameController = TextEditingController(text: product.name);
-    final TextEditingController priceController = TextEditingController(text: product.price.toString());
-    final TextEditingController weightController = TextEditingController(text: product.weight.toString());
-    await showDialog(
-      context: context, 
-      builder: (context) => AlertDialog(
-        content: StatefulBuilder(
-          builder: (context, setState) =>  SingleChildScrollView(
-            child: Column(
-              children: [
-                textFormFieldPers(nameController, "Nome do Produto", keyboardType: TextInputType.name),
-                textFormFieldPers(priceController, "Preço", keyboardType: TextInputType.number),
-                textFormFieldPers(weightController, !unitary? "Peso(kg)": "Unidades" , keyboardType: TextInputType.number),
-                CheckboxListTile(
-                  value: unitary,
-                  onChanged: (val) {
-                    setState(() => unitary = val!);
-                    },
-                  title: const Text("Unitário"),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (nameController.text.isEmpty || priceController.text.isEmpty || weightController.text.isEmpty) return;
-                    await datahandler.updateItem(Item(
-                      name: nameController.text.capitalize(), 
-                      price: double.parse(priceController.text.replaceFirst(RegExp(r','), '.')), 
-                      listid: widget.id,
-                      weight: double.parse(weightController.text.replaceFirst(RegExp(r','), '.')),
-                      wtype: boolToInt(!unitary),
-                      id: product.id
-                      ));
-                    await _getRows();
-                    if (!context.mounted) return;
-                    Navigator.of(context).pop();
-                    }, 
-                  child: const Text("Atualizar produto"))
-              ],
-            ),
-          ),
-        ),
-      ));
+    await showDialog(context: context, builder: (context) => EditProductDialog(product: product));
+    await _getRows();
     return;
   }
 
@@ -243,16 +182,16 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
 
 
   Future<void> removeProduct(Item produto) async {
-    await datahandler.removeItem(produto);
+    await db.removeItem(produto);
     await _getRows();
   }
 
 
   Future<void> printTable() async {
-    List<Item> data = await datahandler.getItems(widget.id);
+    List<Item> data = await db.getItems(widget.id);
     if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) =>  PrintPage(type: 1, data: data, tableName: "${widget.name}      ${widget.date}"))
+      builder: (context) =>  PrintPage(commereceType: "vendas", data: data, tableName: "${widget.name}      ${widget.date}"))
       );
   }
 
@@ -264,6 +203,9 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
       key: scaffoldMessengerKey,
       child: Scaffold(
         floatingActionButton: SpeedDial(
+          backgroundColor: const Color.fromARGB(30, 106, 117, 117),
+          foregroundColor: Colors.lightGreen,
+          elevation: 0,
            animatedIcon: AnimatedIcons.menu_close,
            children: [
             SpeedDialChild(
@@ -302,17 +244,127 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
           
         ),
         body:
-            SingleChildScrollView(
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text("Produto")),
-                  DataColumn(label: Text("Preço")),
-                  DataColumn(label: Text("Peso/Un")),
-                  ],
-                rows: rows
+            SafeArea(
+              bottom: true,
+              child: SingleChildScrollView(
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text("Produto")),
+                    DataColumn(label: Text("Preço")),
+                    DataColumn(label: Text("Peso/Un")),
+                    ],
+                  rows: rows
+                ),
               ),
             )
       ),
+    );
+  }
+}
+
+
+
+class AddProductDialog extends StatelessWidget {
+  AddProductDialog({super.key, required this.tableId});
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
+  final TextEditingController weightController = TextEditingController();
+  final TextEditingController totalController = TextEditingController();
+  final int tableId;
+
+  @override
+  Widget build(BuildContext context) {
+    bool isUnitary = false;
+    return AlertDialog(
+      content: StatefulBuilder(builder: (context, setState) => SingleChildScrollView(
+        child: Column(
+                children: [
+                  textFormFieldPers(nameController, "Nome do Produto", keyboardType: TextInputType.name),
+                  textFormFieldPers(priceController, "Preço", keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false), onChanged: (p0) => autoComplete(priceController, totalController, weightController)),
+                  textFormFieldPers(weightController, !isUnitary? "Peso(kg)": "Unidades" , keyboardType: TextInputType.numberWithOptions(decimal: isUnitary? false : true, signed: false), onChanged: (p0) => autoComplete(weightController, totalController, priceController)),
+                  textFormFieldPers(totalController, "Total (R\$)", keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: (p0) => autoComplete(totalController, weightController, priceController, operation: division)),
+                  CheckboxListTile(
+                      value: isUnitary,
+                      onChanged: (val) {
+                        setState(() => isUnitary = val!);
+                        },
+                      title: const Text("Unitário"),
+                    ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (nameController.text.isEmpty || priceController.text.isEmpty) return;
+                      await db.insertItem(Item(
+                        name: nameController.text.capitalize(), 
+                        price: double.parse(priceController.text.replaceFirst(RegExp(r','), '.')), 
+                        tableId: tableId,
+                        type: unitaryCheck(!isUnitary),
+                        quantity: double.parse(weightController.text.replaceFirst(RegExp(r','), '.'))
+                        ));
+                      if (!context.mounted) return;
+                      Navigator.of(context).pop();
+                      }, 
+                    child: const Text("Adicionar produto"))
+                ],
+              ),
+      )),
+    );
+  }
+}
+
+
+
+class EditProductDialog extends StatelessWidget {
+  EditProductDialog({super.key, required this.product}): 
+    nameController = TextEditingController(text: product.name),
+    priceController = TextEditingController(text: product.price.toString()),
+    weightController = TextEditingController(text: product.quantity.toString()),
+    totalController = TextEditingController(text: (product.price * product.quantity).toString());
+
+  final Item product;
+  final TextEditingController nameController;
+  final TextEditingController priceController;
+  final TextEditingController weightController;
+  final TextEditingController totalController;
+
+
+  @override
+  Widget build(BuildContext context) {
+    bool isUnitary = product.type == "kg" ? false : true;
+    return AlertDialog(
+      content: StatefulBuilder(
+          builder: (context, setState) =>  SingleChildScrollView(
+            child: Column(
+              children: [
+                textFormFieldPers(nameController, "Nome do Produto", keyboardType: TextInputType.name),
+                textFormFieldPers(priceController, "Preço", keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false), onChanged: (p0) => autoComplete(priceController, totalController, weightController)),
+                textFormFieldPers(weightController, !isUnitary? "Peso(kg)": "Unidades" , keyboardType: TextInputType.numberWithOptions(decimal: isUnitary? false : true, signed: false), onChanged: (p0) => autoComplete(weightController, totalController, priceController)),
+                textFormFieldPers(totalController, "Total (R\$)", keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: (p0) => autoComplete(totalController, weightController, priceController, operation: division)),
+                CheckboxListTile(
+                  value: isUnitary,
+                  onChanged: (val) {
+                    setState(() => isUnitary = val!);
+                    },
+                  title: const Text("Unitário"),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (nameController.text.isEmpty || priceController.text.isEmpty || weightController.text.isEmpty) return;
+                    await db.updateItem(Item(
+                      name: nameController.text.capitalize(), 
+                      price: double.parse(priceController.text.replaceFirst(RegExp(r','), '.')), 
+                      tableId: product.tableId,
+                      quantity: double.parse(weightController.text.replaceFirst(RegExp(r','), '.')),
+                      type: unitaryCheck(!isUnitary),
+                      id: product.id
+                      ));
+                    if (!context.mounted) return;
+                    Navigator.of(context).pop();
+                    }, 
+                  child: const Text("Atualizar produto"))
+              ],
+            ),
+          ),
+        ),
     );
   }
 }

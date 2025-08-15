@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:fruteira/main.dart';
-import 'package:fruteira/methods/read_data.dart';
+import 'package:fruteira/methods/database.dart';
 import 'package:fruteira/pages/products_page.dart';
 import 'package:fruteira/pages/sell_page.dart';
 import 'package:fruteira/widgets/buttons.dart';
 import 'package:fruteira/widgets/loadscreen.dart';
-import 'package:intl/intl.dart' show NumberFormat;
 
 class CommercePage extends StatefulWidget {
   const CommercePage({super.key, required this.commerce});
@@ -20,11 +18,10 @@ class _CommercePageState extends State<CommercePage> {
   bool _built = false;
   bool _editorMode = false;
   late List<Tables> tables;
-  NumberFormat f = NumberFormat.currency(symbol: "R\$");
 
   @override
   void initState() {
-    datahandler.getTables(widget.commerce.id!).then((value) {
+    db.getTables(widget.commerce.id!).then((value) {
       tables = value;
       _built = true;
       setState(() {
@@ -33,13 +30,8 @@ class _CommercePageState extends State<CommercePage> {
     super.initState();
   }
 
-  int boolToInt(bool boolean) {
-    if (boolean) return 1;
-    return 0;
-  }
-
   Future<void> getData() async {
-    tables = await datahandler.getTables(widget.commerce.id!);
+    tables = await db.getTables(widget.commerce.id!);
     setState(() {
     });
   }
@@ -61,11 +53,11 @@ class _CommercePageState extends State<CommercePage> {
                 textFormFieldPers(nameController, "Nome da Lista (opcional)"),
                 ElevatedButton(
                   onPressed: () async {
-                    await datahandler.insertTable(
+                    await db.insertTable(
                       Tables(
                         name: nameController.text,
                         date: __buildDate(DateTime.now()),
-                        commerceid: widget.commerce.id!,
+                        commerceId: widget.commerce.id!,
                         )
                     );
                     await getData();
@@ -93,12 +85,12 @@ class _CommercePageState extends State<CommercePage> {
                 ElevatedButton(
                   onPressed: () async {
                     if (nameController.text.isEmpty) return;
-                    await datahandler.updateTable(
+                    await db.updateTable(
                       Tables(
                         name: nameController.text,
                         date: table.date,
                         id: table.id,
-                        commerceid: widget.commerce.id!
+                        commerceId: widget.commerce.id!
                         )
                     );
                     await getData();
@@ -153,7 +145,7 @@ class _CommercePageState extends State<CommercePage> {
               onTap: () async {
                 if (!_editorMode) {
                   final Tables table = tables[index];
-                  widget.commerce.type == 0 ?
+                  widget.commerce.type == "precos" ?
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => ProductsPage(
@@ -179,7 +171,7 @@ class _CommercePageState extends State<CommercePage> {
                 else {
                   final Tables table = tables[index];
                   if (await _confirmDelete(context, table.name)) {
-                    datahandler.removeTable(table);
+                    db.removeTable(table);
                     getData();
                   }
                   _editorMode = false;

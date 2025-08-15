@@ -27,7 +27,8 @@ SizedBox textFormFieldPers(TextEditingController controller, String labelText, {
   bool expands = false,
   double? height, 
   int maxLength = 21,
-  bool enabled = true
+  bool enabled = true,
+  void Function(String)? onChanged
   }){
     
   return SizedBox(
@@ -36,6 +37,7 @@ SizedBox textFormFieldPers(TextEditingController controller, String labelText, {
       padding: const EdgeInsets.all(5), 
       child: 
     TextFormField(
+      onChanged: onChanged,
       expands: expands,
       enabled: enabled,
       maxLength: maxLength,

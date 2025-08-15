@@ -1,16 +1,15 @@
 import 'dart:convert' show jsonDecode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard;
-import 'package:fruteira/main.dart' show datahandler;
 import 'package:fruteira/methods/ai_services.dart' show Prompt, sendToGroq;
-import 'package:fruteira/methods/read_data.dart' show Item;
+import 'package:fruteira/methods/database.dart' show Item, db;
 import 'package:fruteira/methods/str_manipulation.dart' show speechToList;
 import 'package:fruteira/widgets/buttons.dart';
 
 
 class AddManyDialog extends StatefulWidget {
-  const AddManyDialog({super.key, required this.listid});
-  final int listid;
+  const AddManyDialog({super.key, required this.tableid});
+  final int tableid;
 
   @override
   State<AddManyDialog> createState() => _AddManyDialogState();
@@ -33,7 +32,7 @@ class _AddManyDialogState extends State<AddManyDialog> {
  Future<void> addToDB() async {
     try {
       for (Item item in _items) {
-        await datahandler.insertItem(item);
+        await db.insertItem(item);
       }
     }
     catch (e) {
@@ -68,7 +67,7 @@ class _AddManyDialogState extends State<AddManyDialog> {
       return;
      }
      _controller.text = '';
-    _items = speechToList(jsonDecode(_out!), widget.listid);
+    _items = speechToList(jsonDecode(_out!), widget.tableid);
     setState(() {
     });
   }
@@ -84,7 +83,7 @@ class _AddManyDialogState extends State<AddManyDialog> {
             children: [
               for (var item in _items)
                 ListTile(
-                  title: Text("${item.weight} ${item.wtype == 1 ? 'kg' : 'un'} ${item.name} R\$ ${item.price}"),
+                  title: Text("${item.quantity} ${item.type} ${item.name} R\$ ${item.price}"),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete), 
                     onPressed: () {

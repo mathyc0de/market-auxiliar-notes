@@ -1,40 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:fruteira/methods/read_data.dart';
+import 'package:fruteira/methods/database.dart' show DBManager, db;
 import 'package:fruteira/pages/home.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-late final Database db;
-late final DataHandler datahandler;
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Intl.defaultLocale = 'pt_BR';
   await dotenv.load(fileName: ".env");
-  db = await openDatabase(
+  db = DBManager(db: await openDatabase(
     join(await getDatabasesPath(),'data.db'),
+    onOpen: (db) => db.execute("PRAGMA foreign_keys = ON;"),
     onCreate: (db, version) {
       db.execute(
         """
-        CREATE TABLE commerces(id INTEGER PRIMARY KEY, name TEXT, type INTEGER)
+        CREATE TABLE commerces(
+        commerce_id INTEGER PRIMARY KEY, 
+        name TEXT, 
+        type TEXT);
         """
       );
       db.execute(
         """
-        CREATE TABLE tables(id INTEGER PRIMARY KEY, name TEXT, date TEXT, paid FLOAT, commerceid INTEGER);
+        CREATE TABLE tables(
+        table_id INTEGER PRIMARY KEY, 
+        name TEXT, 
+        date TEXT,
+        commerce_id INTEGER,
+        FOREIGN KEY (commerce_id) REFERENCES commerces(commerce_id) ON DELETE CASCADE);
         """
       );
       db.execute(
         """
-        CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT UNIQUE, price FLOAT, weight FLOAT, listid INTEGER, wtype INTEGER)
+        CREATE TABLE items(
+        item_id INTEGER PRIMARY KEY,
+        name TEXT,
+        price FLOAT,
+        quantity FLOAT,
+        type VARCHAR(2) NOT NULL,
+        table_id INTEGER,
+        FOREIGN KEY (table_id) REFERENCES tables(table_id) ON DELETE CASCADE
+        );
         """
       );
     },
     version: 1
-  );
-  datahandler = DataHandler(db: db);
+  ));
   runApp(const App());
 }
 

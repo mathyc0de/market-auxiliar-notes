@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:fruteira/methods/read_data.dart';
+import 'package:fruteira/methods/database.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -7,9 +7,9 @@ import 'package:printing/printing.dart';
 import 'package:flutter/material.dart';
 
 class PrintPage extends StatelessWidget {
-  const PrintPage({required this.type, required this.data, required this.tableName, super.key});
+  const PrintPage({required this.commereceType, required this.data, required this.tableName, super.key});
   final List<Item> data;
-  final int type;
+  final String commereceType;
   final String tableName;
   
   // final content;
@@ -27,7 +27,7 @@ class PrintPage extends StatelessWidget {
   double sumTable(List<Item> items) {
     double total = 0;
     for (Item produto in items) {
-      total += produto.price * produto.weight;
+      total += produto.price * produto.quantity;
     }
     return total;
   }
@@ -37,14 +37,14 @@ class PrintPage extends StatelessWidget {
     final int collumns = length ~/ 33 + 1;
     final List<List<String>> result;
     final NumberFormat f = NumberFormat.currency(symbol: "R\$");
-    if (type == 1) {
+    if (commereceType == "vendas") {
       result = [];
       for (final Item item in data) {
           result.add([
             item.name, 
             f.format(item.price), 
-            item.wtype == 1? "${item.weight} kg": "${item.weight} Un",
-            f.format(item.price * item.weight)
+            "${item.quantity} ${item.type}",
+            f.format(item.price * item.quantity)
             ]);
         }
         result.add(["Total"]);
@@ -56,7 +56,7 @@ class PrintPage extends StatelessWidget {
                 for (final Item item in data) {
                   result.add([
                     item.name, 
-                    item.wtype == 1? "${f.format(item.price)} / kg": "${f.format(item.price)} / Un"
+                    "${f.format(item.price)} / ${item.quantity}"
                     ]);
                 }
                 return result;
@@ -73,7 +73,7 @@ class PrintPage extends StatelessWidget {
   
 
   List<String> getHeaders() {
-    if (type == 1) {
+    if (commereceType == "vendas") {
       return ['Produto', 'Preço', 'Peso / Qtd', 'Valores'];
     }
     if (data.length <= 32) {

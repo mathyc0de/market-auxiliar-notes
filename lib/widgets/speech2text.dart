@@ -1,9 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:fruteira/main.dart' show datahandler;
 import 'package:fruteira/methods/ai_services.dart';
-import 'package:fruteira/methods/read_data.dart' show Item;
+import 'package:fruteira/methods/database.dart' show Item, db;
 import 'package:fruteira/methods/str_manipulation.dart' show speechToList;
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:fruteira/widgets/dialogs.dart' show ErrorDialog;
@@ -24,8 +23,8 @@ import 'package:fruteira/widgets/dialogs.dart' show ErrorDialog;
 
 
 class SpeechDialog extends StatefulWidget {
-  const SpeechDialog({super.key, required this.listid});
-  final int listid;
+  const SpeechDialog({super.key, required this.tableid});
+  final int tableid;
 
   @override
   State<SpeechDialog> createState() => _SpeechDialogState();
@@ -111,9 +110,9 @@ class _SpeechDialogState extends State<SpeechDialog> {
 
   Future<void> addToDB() async {
     try {
-      final List<Item> items = speechToList(_decoded, widget.listid);
+      final List<Item> items = speechToList(_decoded, widget.tableid);
       for (Item item in items) {
-        await datahandler.insertItem(item);
+        await db.insertItem(item);
       }
     }
     catch (e) {
