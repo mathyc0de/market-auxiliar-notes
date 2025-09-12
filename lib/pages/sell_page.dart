@@ -119,7 +119,7 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
   }
 
   Future<void> addProduct() async {
-    if (length < 32) {
+    if (length < 31) {
       await showDialog(context: context, builder: (context) => AddProductDialog(tableId: widget.id));
       await _getRows();
       return;
@@ -274,15 +274,16 @@ class AddProductDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget brlSymbol = Text("R\$", style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.bold));
     bool isUnitary = false;
     return AlertDialog(
       content: StatefulBuilder(builder: (context, setState) => SingleChildScrollView(
         child: Column(
                 children: [
                   textFormFieldPers(nameController, "Nome do Produto", keyboardType: TextInputType.name),
-                  textFormFieldPers(priceController, "Preço", keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false), onChanged: (p0) => autoComplete(priceController, totalController, weightController)),
+                  textFormFieldPers(priceController, "Preço", keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false), prefix: brlSymbol,  onChanged: (p0) => autoComplete(priceController, totalController, weightController)),
                   textFormFieldPers(weightController, !isUnitary? "Peso(kg)": "Unidades" , keyboardType: TextInputType.numberWithOptions(decimal: isUnitary? false : true, signed: false), onChanged: (p0) => autoComplete(weightController, totalController, priceController)),
-                  textFormFieldPers(totalController, "Total (R\$)", keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: (p0) => autoComplete(totalController, weightController, priceController, operation: division)),
+                  textFormFieldPers(totalController, "Total (R\$)", prefix: brlSymbol, keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: (p0) => autoComplete(totalController, weightController, priceController, operation: division)),
                   CheckboxListTile(
                       value: isUnitary,
                       onChanged: (val) {

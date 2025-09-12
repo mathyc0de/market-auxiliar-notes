@@ -23,6 +23,7 @@ SpeedDial multipleFloatingActionButtons() {
 
 
 SizedBox textFormFieldPers(TextEditingController controller, String labelText, {
+  Widget? prefix,
   TextInputType keyboardType = TextInputType.name, 
   bool expands = false,
   double? height, 
@@ -46,6 +47,7 @@ SizedBox textFormFieldPers(TextEditingController controller, String labelText, {
       minLines: null,
       maxLines: null,
       decoration: InputDecoration(
+        prefix: prefix,
         labelText: labelText,
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(5))

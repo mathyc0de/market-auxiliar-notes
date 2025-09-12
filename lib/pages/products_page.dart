@@ -261,9 +261,6 @@ class _StateProductsPage extends State<ProductsPage> {
 
 
 
-
-
-
 class AddProductDialog extends StatelessWidget {
   AddProductDialog({super.key, required this.tableId});
   final TextEditingController nameController = TextEditingController();
@@ -273,12 +270,13 @@ class AddProductDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isUnitary = false;
+    Widget brlSymbol = Text("R\$", style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.bold));
     return AlertDialog(
       content: StatefulBuilder(builder: (context, setState) => SingleChildScrollView(
         child: Column(
                 children: [
                   textFormFieldPers(nameController, "Nome do Produto", keyboardType: TextInputType.name),
-                  textFormFieldPers(priceController, !isUnitary? "Preço / kg": "Preço / Unidade", keyboardType: TextInputType.number),
+                  textFormFieldPers(priceController, !isUnitary? "Preço / kg": "Preço / Unidade", keyboardType: TextInputType.number, prefix: brlSymbol),
                   CheckboxListTile(
                     title: const Text("Unitário"),
                     value: isUnitary, 
@@ -318,13 +316,14 @@ class EditProductDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isUnitary = product.type == "kg" ? false : true;
+    Widget brlSymbol = Text("R\$", style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.bold));
     return Dialog(
       child: StatefulBuilder(
           builder: (context, setState) =>  SingleChildScrollView(
             child: Column(
               children: [
                 textFormFieldPers(nameController, "Nome do Produto", keyboardType: TextInputType.name),
-                textFormFieldPers(priceController, !isUnitary? "Preço / kg": "Preço / Unidade", keyboardType: TextInputType.number),
+                textFormFieldPers(priceController, !isUnitary? "Preço / kg": "Preço / Unidade", keyboardType: TextInputType.number, prefix: brlSymbol),
                 CheckboxListTile(
                   title: const Text("Unitário"),
                   value: isUnitary, 

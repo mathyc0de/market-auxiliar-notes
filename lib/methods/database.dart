@@ -171,7 +171,7 @@ class DBManager {
   Future<void> removeItem(Item item) async {
     await db.delete(
       "items",
-      where: "table_id = ${item.tableId}"
+      where: "item_id = ${item.id}"
     );
     return;
   }
