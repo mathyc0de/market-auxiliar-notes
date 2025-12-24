@@ -222,20 +222,35 @@ class AddCommerceDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool useProduct = false;
     return AlertDialog(
       content: StatefulBuilder(builder: (context, setState) => SingleChildScrollView(
         child:  Column(
               children: [
                 textFormFieldPers(nameController, "Nome do Comércio"),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: useProduct, 
+                      onChanged: (bool? value) {
+                        useProduct = value!;
+                        setState(() {
+                        });
+                      }),
+                    const Text("Usar IDs de produtos")
+                  ],
+                ),
                 ElevatedButton(
                   onPressed: () async {
                     if (nameController.text.isEmpty) return;
                     await db.insertCommerce(
                       Commerce(
                         name: nameController.text,
-                        type: type
+                        type: type,
+                        useProductId: useProduct
                         )
                     );
+                    if (!context.mounted) return;
                     Navigator.of(context).pop();
                     }, 
                   child: const Text("Criar comércio"))
@@ -254,16 +269,29 @@ class EditCommerceDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool useProduct = commerce.useProductId;
     return AlertDialog(
       content: StatefulBuilder(builder: (context, setState) => SingleChildScrollView(
         child: Column(
               children: [
                 textFormFieldPers(nameController, "Nome do comércio"),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: useProduct, 
+                      onChanged: (bool? value) {
+                        useProduct = value!;
+                        setState(() {
+                        });
+                      }),
+                    const Text("Usar IDs de produtos")
+                  ],
+                ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (nameController.text.isEmpty) return;
+                    if (nameController.text.isEmpty && commerce.useProductId == useProduct) return;
                     await db.updateCommerce(
-                      commerce.id!, commerce.name 
+                      commerce.id!, nameController.text, useProduct
                     );
                     if (!context.mounted) return;
                     Navigator.of(context).pop();

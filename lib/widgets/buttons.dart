@@ -29,7 +29,8 @@ SizedBox textFormFieldPers(TextEditingController controller, String labelText, {
   double? height, 
   int maxLength = 21,
   bool enabled = true,
-  void Function(String)? onChanged
+  void Function(String value)? onChanged,
+  FocusNode? focusNode
   }){
     
   return SizedBox(
@@ -44,6 +45,7 @@ SizedBox textFormFieldPers(TextEditingController controller, String labelText, {
       maxLength: maxLength,
       controller: controller,
       keyboardType: keyboardType,
+      focusNode: focusNode,
       minLines: null,
       maxLines: null,
       decoration: InputDecoration(

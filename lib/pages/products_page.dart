@@ -8,7 +8,7 @@ import 'package:fruteira/widgets/buttons.dart';
 import 'package:fruteira/widgets/loadscreen.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 
-
+const int maxProducts = 228;
 
 String unitaryCheck(bool boolean) {
     if (boolean) return "kg";
@@ -36,39 +36,39 @@ class ProductsPage extends StatefulWidget {
 class _StateProductsPage extends State<ProductsPage> {
   bool _built = false;
   late List<DataRow> rows;
-  bool _editorMode = false;
-  int length = 0;
+  final List<Item> selectedItems = [];
+  List<Item> items = [];
   NumberFormat f = NumberFormat.currency(symbol: "R\$");
-  Widget? _leading;
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
-  Future<void> _getRows() async {
-    final List<Item> items = await db.getItems(widget.id);
-    length = items.length;
-    rows = 
-    [ 
-      for (Item produto in items)
-      DataRow(
-        cells: [
-          DataCell(
-            onLongPress: () => edit(produto),
-            Text(produto.name)
+  void _updateRows() {
+    selectedItems.retainWhere((item) => items.contains(item));
+    rows = [
+      for (final Item produto in items)
+        DataRow(
+          color: WidgetStatePropertyAll(
+            selectedItems.contains(produto)
+                ? const Color.fromARGB(199, 134, 178, 83)
+                : const Color.fromARGB(0, 0, 0, 0),
           ),
-          DataCell(
-            Row(
-              children: [
-                Text("${f.format(produto.price)} / ${produto.type}"),
-                if (_editorMode) IconButton(
-                  onPressed: () => removeProduct(produto), 
-                  icon: const Icon(Icons.do_disturb_on, color: Colors.red)
-                  )
-                ]
-              )
-          )
-        ] 
-      )
+          cells: [
+            DataCell(
+              onTap: () => _toggleSelection(produto),
+              onLongPress: () => edit(produto),
+              Text(produto.name),
+            ),
+            DataCell(
+              Text("${f.format(produto.price)} / ${produto.type}"),
+            ),
+          ],
+        ),
     ];
     setState(() {});
+  }
+
+  Future<void> _getRows() async {
+    items = await db.getItems(widget.id);
+    _updateRows();
   }
 
   @override
@@ -81,7 +81,7 @@ class _StateProductsPage extends State<ProductsPage> {
   
 
   Future<void> addProduct() async {
-    if (length < 96) {      
+    if (items.length < 96) {      
       await showDialog(context: context, builder: (context) => AddProductDialog(tableId: widget.id));
       await _getRows();
       return;
@@ -122,26 +122,8 @@ class _StateProductsPage extends State<ProductsPage> {
 
 
   
-  void editorMode() {
-    _editorMode = true;
-    _leading = IconButton(
-      onPressed: disableEditor, 
-      icon: const Icon(Icons.delete, color: Colors.red)
-    );
-    _getRows();
-  }
-
-
-  void disableEditor() {
-    _editorMode = false;
-    _leading = null;
-    _getRows();
-  }
-
-
   Future<void> removeProduct(Item produto) async {
     await db.removeItem(produto);
-    await _getRows();
   }
 
   Future<void> printTable() async {
@@ -164,13 +146,12 @@ class _StateProductsPage extends State<ProductsPage> {
     final List<Item>? result = textToList(text, tableid);
     if (result == null) return;
     for (final Item item in result) {
-      if (length >= 96) {
+      if (items.length >= maxProducts) {
         scaffoldMessengerKey.currentState!.showSnackBar(const SnackBar(
-          content: Text("O limite de 96 Produtos foi atingido, os excedentes não foram adicionados")));
+          content: Text("O limite de $maxProducts Produtos foi atingido, os excedentes não foram adicionados")));
         break;
         }
-      db.insertItem(item);
-      length ++;
+      await db.insertItem(item);
     }
     await _getRows();
     if (!mounted) return;
@@ -191,11 +172,21 @@ class _StateProductsPage extends State<ProductsPage> {
   
 
 
+  void _toggleSelection(Item produto) {
+    if (selectedItems.contains(produto)) {
+      selectedItems.remove(produto);
+    } else {
+      selectedItems.add(produto);
+    }
+    _updateRows();
+  }
+
 
 
   @override
   Widget build(BuildContext context) {
     if (!_built) return loadScreen();
+    print(items.length);
     return ScaffoldMessenger(
       key: scaffoldMessengerKey,
       child: SafeArea(
@@ -211,11 +202,6 @@ class _StateProductsPage extends State<ProductsPage> {
                 label: "Adicionar Produto",
                 child: const Icon(Icons.add),
                 onTap: addProduct,
-              ),
-              SpeedDialChild(
-                label: "Remover Produto",
-                child: const Icon(Icons.delete),
-                onTap: editorMode
               ),
               SpeedDialChild(
                 label: "Imprimir Tabela",
@@ -239,7 +225,29 @@ class _StateProductsPage extends State<ProductsPage> {
             title: Text("${widget.commerce} ${widget.name} ${widget.date}",
             style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
             centerTitle: true,
-            leading: _leading
+            actions: selectedItems.isEmpty
+                ? [Text("${items.length} / $maxProducts", style: TextStyle(fontWeight: FontWeight.bold, color: items.length < maxProducts? const Color(0xFFFFFFFF) : const Color(0xFFFF0000), fontSize: 18))]
+                : [
+                    if (selectedItems.length == 1)
+                      IconButton(
+                        onPressed: () async {
+                          await edit(selectedItems.first);
+                          selectedItems.clear();
+                          _getRows();
+                        },
+                        icon: const Icon(Icons.edit, color: Color(0xFFFFFFFF)),
+                      ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Color(0xFFFFFFFF)),
+                      onPressed: () async {
+                        for (final Item produto in List<Item>.from(selectedItems)) {
+                          await removeProduct(produto);
+                        }
+                        selectedItems.clear();
+                        await _getRows();
+                      },
+                    ),
+                  ]
             
           ),
           body:

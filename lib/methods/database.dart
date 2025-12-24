@@ -9,17 +9,54 @@ class Commerce {
     this.id,
     required this.name,
     required this.type,
+    this.useProductId = false,
   });
 
   final int? id;
   final String name;
   final String type;
+  final bool useProductId;
 
    Map<String, Object?> toMap() {
     return {
       'name': name,
-      'type': type
+      'type': type,
+      'use_product_id': useProductId ? 1 : 0,
     };
+  }
+}
+
+
+class Product {
+  const Product({
+    this.id,
+    required this.commerceId,
+    required this.productId,
+    required this.name,
+  });
+
+  final int? id;
+  final int commerceId;
+  final int productId;
+  final String name;
+
+  Map<String, Object?> toMap() {
+    return {
+      'commerce_id': commerceId,
+      'product_id': productId,
+      'name': name,
+    };
+  }
+
+  @override
+  String toString() {
+    return """
+    product(
+    id: $id,
+    commerce_id: $commerceId,
+    product_id: $productId,
+    name: $name,
+    )""";
   }
 }
 
@@ -34,6 +71,7 @@ class Item {
       required this.price, 
       this.quantity = 1,
       this.type = "kg",
+      this.productId,
     });
 
   final int? id;
@@ -42,6 +80,7 @@ class Item {
   final double price;
   final double quantity;
   final String type;
+  final int? productId;
 
   Map<String, Object?> toMap() {
     return {
@@ -50,6 +89,7 @@ class Item {
       'price': price,
       'quantity': quantity,
       'type': type,
+      'product_id': productId,
     };
   }
 
@@ -73,6 +113,7 @@ class Item {
     quantity: $quantity,
     type: $type
     item_id: $id,
+    product_id: $productId,
     )""";
   }
 }
@@ -135,12 +176,51 @@ class DBManager {
     await db.delete("commerces", where: 'commerce_id=$commerceid');
   }
 
-  Future<void> updateCommerce(int commerceid, String newName) async {
+  Future<void> updateCommerce(int commerceid, String newName, bool useProductId) async {
     await db.rawUpdate(
       """
-      UPDATE commerces SET name = ? WHERE commerce_id = $commerceid
-      """, [newName]
+      UPDATE commerces SET name = ?, use_product_id = ? WHERE commerce_id = $commerceid
+      """, [newName, useProductId ? 1 : 0]
     );
+  }
+
+  Future<void> insertProduct(Product product) async {
+    await db.insert(
+      "products",
+      product.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.abort
+    );
+  }
+
+  Future<void> removeProduct(int productId, int commerceId) async {
+    await db.delete(
+      "products",
+      where: 'product_id = $productId AND commerce_id = $commerceId'
+    );
+  }
+
+  Future<List<Product>> getProducts(int commerceId) async {
+    final List<Map<String, Object?>> products = await db.query(
+      "products",
+      where: "commerce_id = $commerceId",
+      orderBy: "product_id ASC"
+    );
+    if (products.isEmpty) return [];
+    return [
+      for (
+        final {
+        'id': id as int,
+        'commerce_id': commerceId as int,
+        'product_id': productId as int,
+        'name': name as String
+        } in products)
+      Product(
+        id: id,
+        commerceId: commerceId,
+        productId: productId,
+        name: name
+      )
+    ];
   }
  
   Future<void> insertTable(Tables table) async {
@@ -184,9 +264,10 @@ class DBManager {
         final {
         'commerce_id': id as int,
         'name': name as String,
-        'type': type as String
+        'type': type as String,
+        'use_product_id': useProductId as int
       } in commerces)
-      Commerce(id: id, name: name, type: type)
+      Commerce(id: id, name: name, type: type, useProductId: useProductId == 1)
     ];
   }
 
@@ -239,6 +320,7 @@ class DBManager {
         'table_id': tableId as int,
         'quantity': quantity as double,
         'type': type as String,
+        'product_id': productId as int?,
         }
       in items)
       Item(
@@ -248,6 +330,7 @@ class DBManager {
         price: price, 
         quantity: quantity, 
         type: type,
+        productId: productId,
         )
     ];
   }
@@ -255,9 +338,9 @@ class DBManager {
   Future<void> updateItem(Item item) async {
     await db.rawUpdate(
       """
-        UPDATE items SET name = ?, price = ?, quantity = ?, type = ? WHERE item_id = ${item.id}
+        UPDATE items SET name = ?, price = ?, quantity = ?, type = ?, product_id = ? WHERE item_id = ${item.id}
       """,
-      [item.name, item.price, item.quantity, item.type]
+      [item.name, item.price, item.quantity, item.type, item.productId]
     );
   }
 

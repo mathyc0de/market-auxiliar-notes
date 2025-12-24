@@ -13,13 +13,42 @@ void main() async {
   db = DBManager(db: await openDatabase(
     join(await getDatabasesPath(),'data.db'),
     onOpen: (db) => db.execute("PRAGMA foreign_keys = ON;"),
+    onUpgrade: (db, oldVersion, newVersion) {
+      if (oldVersion < 2) {
+        db.execute("ALTER TABLE commerces ADD COLUMN use_product_id INTEGER DEFAULT 0;");
+        db.execute("ALTER TABLE items ADD COLUMN product_id INTEGER;");
+        db.execute(
+          """
+          CREATE TABLE products(
+          id INTEGER PRIMARY KEY,
+          commerce_id INTEGER,
+          product_id INTEGER NOT NULL,
+          name TEXT,
+          UNIQUE(commerce_id, product_id),
+          FOREIGN KEY (commerce_id) REFERENCES commerces(commerce_id) ON DELETE CASCADE);
+          """
+        );
+      }
+    },
     onCreate: (db, version) {
       db.execute(
         """
         CREATE TABLE commerces(
         commerce_id INTEGER PRIMARY KEY, 
         name TEXT, 
-        type TEXT);
+        type TEXT,
+        use_product_id INTEGER DEFAULT 0);
+        """
+      );
+      db.execute(
+        """
+        CREATE TABLE products(
+        id INTEGER PRIMARY KEY,
+        commerce_id INTEGER,
+        product_id INTEGER NOT NULL,
+        name TEXT,
+        UNIQUE(commerce_id, product_id),
+        FOREIGN KEY (commerce_id) REFERENCES commerces(commerce_id) ON DELETE CASCADE);
         """
       );
       db.execute(
@@ -41,12 +70,13 @@ void main() async {
         quantity FLOAT,
         type VARCHAR(2) NOT NULL,
         table_id INTEGER,
+        product_id INTEGER,
         FOREIGN KEY (table_id) REFERENCES tables(table_id) ON DELETE CASCADE
         );
         """
       );
     },
-    version: 1
+    version: 2
   ));
   runApp(const App());
 }
