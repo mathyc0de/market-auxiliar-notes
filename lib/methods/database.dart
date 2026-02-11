@@ -125,12 +125,14 @@ class Tables {
     required this.commerceId,
     required this.name, 
     required this.date,
+    this.timestamp,
     });
 
   final int? id;
   final int commerceId;
   final String name;
   final String date;
+  final int? timestamp;
   
 
   Map<String, Object?> toMap() {
@@ -138,6 +140,7 @@ class Tables {
       'commerce_id': commerceId,
       'name': name,
       'date': date,
+      'timestamp': timestamp ?? DateTime.now().millisecondsSinceEpoch,
     };
   }
 
@@ -148,7 +151,8 @@ class Tables {
         table_id: $id, 
         commerce_id: $commerceId
         name: $name, 
-        date: $date, 
+        date: $date,
+        timestamp: $timestamp,
         }""";
   }
 
@@ -281,10 +285,11 @@ class DBManager {
         'table_id': id as int,
         'name': name as String,
         'date': date as String,
-        'commerce_id': commerceId as int
+        'commerce_id': commerceId as int,
+        'timestamp': timestamp as int?
         }
       in tables)
-      Tables(name: name, id: id, date: date, commerceId: commerceId)
+      Tables(name: name, id: id, date: date, commerceId: commerceId, timestamp: timestamp)
     ].reversed.toList();
   }
 
@@ -351,6 +356,26 @@ class DBManager {
       """,
       [table.name]
     );
+  }
+
+  /// Busca o preço de um produto na última tabela anterior que contém esse produto
+  Future<double?> getPreviousPrice(int commerceId, int productId, int currentTimestamp) async {
+    final result = await db.rawQuery(
+      """
+      SELECT i.price 
+      FROM items i
+      INNER JOIN tables t ON i.table_id = t.table_id
+      WHERE t.commerce_id = ?
+        AND i.product_id = ?
+        AND t.timestamp < ?
+      ORDER BY t.timestamp DESC
+      LIMIT 1
+      """,
+      [commerceId, productId, currentTimestamp]
+    );
+    
+    if (result.isEmpty) return null;
+    return result.first['price'] as double?;
   }
 
   // Future<void> logData() async {

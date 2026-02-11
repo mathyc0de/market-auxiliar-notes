@@ -29,6 +29,18 @@ void main() async {
           """
         );
       }
+      if (oldVersion < 3) {
+        db.execute("ALTER TABLE tables ADD COLUMN timestamp INTEGER DEFAULT 0;");
+        // Atualizar registros existentes com timestamps incrementais
+        db.execute("""
+          UPDATE tables 
+          SET timestamp = (
+            SELECT COUNT(*) 
+            FROM tables t2 
+            WHERE t2.table_id <= tables.table_id AND t2.commerce_id = tables.commerce_id
+          )
+        """);
+      }
     },
     onCreate: (db, version) {
       db.execute(
@@ -58,6 +70,7 @@ void main() async {
         name TEXT, 
         date TEXT,
         commerce_id INTEGER,
+        timestamp INTEGER DEFAULT 0,
         FOREIGN KEY (commerce_id) REFERENCES commerces(commerce_id) ON DELETE CASCADE);
         """
       );
@@ -76,7 +89,7 @@ void main() async {
         """
       );
     },
-    version: 2
+    version: 3
   ));
   runApp(const App());
 }
