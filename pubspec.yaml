@@ -20,6 +20,7 @@ dependencies:
   speech_to_text:
   dio:
   flutter_dotenv:
+  shared_preferences: ^2.2.2
 
 
 dev_dependencies:
