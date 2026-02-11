@@ -130,7 +130,12 @@ class _StateProductsPage extends State<ProductsPage> {
     List<Item> data = await db.getItems(widget.id);
     if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) =>  PrintPage(commereceType: "precos", data: data, tableName: "${widget.name}      ${widget.date}"))
+      builder: (context) =>  PrintPage(
+        commereceType: "precos", 
+        data: data, 
+        tableName: "${widget.name}      ${widget.date}",
+        // commerceId e timestamp não são necessários para tipo "precos"
+      ))
       );
   }
 

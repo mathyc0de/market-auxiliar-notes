@@ -196,9 +196,21 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
 
   Future<void> printTable() async {
     List<Item> data = await db.getItems(widget.id);
+    
+    // Buscar informações da tabela para obter timestamp
+    final tables = await db.getTables(widget.commerce.id!);
+    final currentTable = tables.firstWhere((t) => t.id == widget.id);
+    
     if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) =>  PrintPage(commereceType: "vendas", data: data, tableName: "${widget.name}      ${widget.date}", useProductId: widget.commerce.useProductId))
+      builder: (context) =>  PrintPage(
+        commereceType: "vendas", 
+        data: data, 
+        tableName: "${widget.name}      ${widget.date}", 
+        useProductId: widget.commerce.useProductId,
+        commerceId: widget.commerce.id,
+        timestamp: currentTable.timestamp,
+      ))
       );
   }
 
