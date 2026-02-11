@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 
@@ -26,29 +27,55 @@ class _PrintPageState extends State<PrintPage> {
   double cellFontSize = 8.0;
 
   @override
+  void initState() {
+    super.initState();
+    _loadFontSize();
+  }
+
+  Future<void> _loadFontSize() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      cellFontSize = prefs.getDouble('pdf_cell_font_size') ?? 8.0;
+    });
+  }
+
+  Future<void> _saveFontSize(double size) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('pdf_cell_font_size', size);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title: const Text("Listas da Fruteira"),
           actions: [
             IconButton(
-              icon: const Icon(Icons.text_decrease),
+              icon: const Icon(Icons.text_decrease, color: Color(0xFF000000),),
               onPressed: () {
-                setState(() {
-                  if (cellFontSize > 4) cellFontSize -= 0.5;
-                });
+                if (cellFontSize > 4) {
+                  final newSize = cellFontSize - 0.5;
+                  setState(() {
+                    cellFontSize = newSize;
+                  });
+                  _saveFontSize(newSize);
+                }
               },
               tooltip: 'Diminuir fonte',
             ),
             Center(
-              child: Text('${cellFontSize.toStringAsFixed(1)}'),
+              child: Text('${cellFontSize.toStringAsFixed(1)}', style: const TextStyle(color: Color(0xFF000000)),),
             ),
             IconButton(
-              icon: const Icon(Icons.text_increase),
+              icon: const Icon(Icons.text_increase, color: Color(0xFF000000),),
               onPressed: () {
-                setState(() {
-                  if (cellFontSize < 16) cellFontSize += 0.5;
-                });
+                if (cellFontSize < 16) {
+                  final newSize = cellFontSize + 0.5;
+                  setState(() {
+                    cellFontSize = newSize;
+                  });
+                  _saveFontSize(newSize);
+                }
               },
               tooltip: 'Aumentar fonte',
             ),
@@ -225,12 +252,15 @@ Future<Uint8List> _generatePdf(PdfPageFormat format, String title) async {
               
               if (currentPrice < previousPrice) {
                 backgroundColor = PdfColors.green100; // Preço reduziu
-                priceSymbol = '  v';
+                priceSymbol = 'v ';
               } else if (currentPrice > previousPrice) {
                 backgroundColor = PdfColors.red100; // Preço aumentou
-                priceSymbol = '  ^';
+                priceSymbol = '^ ';
+              } else {
+                priceSymbol = '  '; // Espaço para manter alinhamento
               }
-              // Se igual, não aplica cor nem símbolo
+            } else {
+              priceSymbol = '  '; // Espaço para manter alinhamento quando não há preço anterior
             }
           }
           
@@ -242,9 +272,10 @@ Future<Uint8List> _generatePdf(PdfPageFormat format, String title) async {
               final cellIndex = cellEntry.key;
               final cell = cellEntry.value;
               
-              // Adicionar símbolo na coluna de preço (índice 2)
-              final displayText = (cellIndex == 2 && priceSymbol.isNotEmpty) 
-                  ? '$cell$priceSymbol' 
+              // Adicionar símbolo antes do nome do produto (índice 1 quando useProductId, índice 0 quando não)
+              final nameColumnIndex = widget.useProductId ? 1 : 0;
+              final displayText = (cellIndex == nameColumnIndex && priceSymbol.isNotEmpty) 
+                  ? '$priceSymbol$cell' 
                   : cell;
               
               return pw.Padding(
