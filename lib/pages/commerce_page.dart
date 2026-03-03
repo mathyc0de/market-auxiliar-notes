@@ -368,7 +368,7 @@ class _ProductIDDialogState extends State<ProductIDDialog> {
             textFormFieldPers(
               nameController,
               "Nome do Produto",
-              maxLength: 50,
+              maxLength: 21,
             ),
             textFormFieldPers(
               idController,

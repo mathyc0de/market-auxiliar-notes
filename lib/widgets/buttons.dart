@@ -27,7 +27,7 @@ SizedBox textFormFieldPers(TextEditingController controller, String labelText, {
   TextInputType keyboardType = TextInputType.name, 
   bool expands = false,
   double? height, 
-  int maxLength = 21,
+  int maxLength = 25,
   bool enabled = true,
   void Function(String value)? onChanged,
   FocusNode? focusNode
