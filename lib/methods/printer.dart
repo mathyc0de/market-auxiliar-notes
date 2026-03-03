@@ -165,7 +165,7 @@ class _PrintPageState extends State<PrintPage> {
     if (widget.data.length <= 57) {
       return ['Produto', 'Preço'];
     }
-    return ["Coluna 1", "Coluna 2", "Coluna 3"];
+    return [];
   }
 
   Future<Uint8List> _generatePdf(PdfPageFormat format, String title) async {
