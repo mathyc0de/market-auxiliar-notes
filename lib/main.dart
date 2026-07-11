@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:market_invoices_app/methods/database.dart' show DBManager, db;
 import 'package:market_invoices_app/pages/home.dart';
 import 'package:intl/intl.dart';
+import 'package:market_invoices_app/style/theme.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -98,14 +99,12 @@ class App extends StatelessWidget {
   const App({super.key});
   @override
   Widget build(BuildContext context) {
+    final brightness = View.of(context).platformDispatcher.platformBrightness;
+    final TextTheme textTheme = createTextTheme(context, "Roboto", "Inter");
+    final MaterialTheme theme = MaterialTheme(textTheme);
     return MaterialApp(
-      darkTheme: ThemeData(
-        // brightness: Brightness.dark,
-      ),
       debugShowCheckedModeBanner: false,
-      theme: ThemeData( 
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 186, 255, 23)),
-      ),
+      theme: brightness == Brightness.light? theme.light() : theme.dark(),
       home: const HomePage(),
     );
   }
