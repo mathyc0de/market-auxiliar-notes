@@ -286,7 +286,7 @@ class AddCommerceDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               textFormFieldPers(nameController, 'Nome do comércio'),
-              CheckboxListTile(
+              if (type == "vendas") CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   'Usar IDs de produtos',
