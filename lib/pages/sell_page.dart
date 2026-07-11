@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:market_invoices_app/methods/printer.dart';
+import 'package:market_invoices_app/pages/thermal_print_page.dart';
 import 'package:market_invoices_app/methods/database.dart';
 import 'package:market_invoices_app/methods/str_manipulation.dart';
 import 'package:market_invoices_app/widgets/buttons.dart';
@@ -194,6 +195,14 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
   }
 
 
+  Future<void> printThermal() async {
+    final List<Item> data = await db.getItems(widget.id);
+    if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => ThermalPrintPage(items: data),
+    ));
+  }
+
   Future<void> printTable() async {
     List<Item> data = await db.getItems(widget.id);
     
@@ -242,6 +251,11 @@ class _StateProductsPageWithWeight extends State<ProductsPageWithWeight> {
               child: const Icon(Icons.mic),
               onTap: _addProductVoice,
 
+            ),
+            SpeedDialChild(
+              label: "Imprimir Térmica",
+              child: const Icon(Icons.receipt_long),
+              onTap: printThermal,
             ),
             SpeedDialChild(
               label: "Imprimir Tabela",
