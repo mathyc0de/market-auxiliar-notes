@@ -16,12 +16,13 @@ String unitaryCheck(bool boolean) {
 }
 
 class ProductsPage extends StatefulWidget {
-  const ProductsPage(
-      {super.key,
-      required this.id,
-      required this.name,
-      required this.date,
-      required this.commerce});
+  const ProductsPage({
+    super.key,
+    required this.id,
+    required this.name,
+    required this.date,
+    required this.commerce,
+  });
 
   final String name;
   final int id;
@@ -34,99 +35,77 @@ class ProductsPage extends StatefulWidget {
 
 class _StateProductsPage extends State<ProductsPage> {
   bool _built = false;
-  late List<DataRow> rows;
   final List<Item> selectedItems = [];
   List<Item> items = [];
-  NumberFormat f = NumberFormat.currency(symbol: "R\$");
+  final NumberFormat _currency = NumberFormat.currency(symbol: "R\$");
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
 
-  void _updateRows() {
-    rows = [
-      for (Item produto in items)
-        DataRow(
-          color: WidgetStatePropertyAll(
-            selectedItems.contains(produto)
-                ? const Color.fromARGB(199, 134, 178, 83)
-                : const Color.fromARGB(0, 0, 0, 0),
-          ),
-          cells: [
-            DataCell(
-              onTap: () {
-                if (selectedItems.contains(produto)) {
-                  setState(() {
-                    selectedItems.remove(produto);
-                  });
-                  _updateRows();
-                  return;
-                }
-                setState(() {
-                  selectedItems.add(produto);
-                });
-                _updateRows();
-              },
-              Text(produto.name),
-            ),
-            DataCell(
-              Text("${f.format(produto.price)} / ${produto.type}"),
-            ),
-          ],
-        ),
-    ];
-    setState(() {});
-  }
-
   Future<void> _getRows() async {
     items = await db.getItems(widget.id);
-    _updateRows();
+    setState(() {});
   }
 
   @override
   void initState() {
-    _getRows().then((val) {
+    _getRows().then((_) {
       _built = true;
+      setState(() {});
     });
     super.initState();
+  }
+
+  void _toggleSelection(Item item) {
+    setState(() {
+      selectedItems.contains(item)
+          ? selectedItems.remove(item)
+          : selectedItems.add(item);
+    });
   }
 
   Future<void> addProduct() async {
     if (items.length < maxProducts) {
       await showDialog(
-          context: context,
-          builder: (context) => AddProductDialog(tableId: widget.id));
+        context: context,
+        builder: (context) => AddProductDialog(tableId: widget.id),
+      );
       await _getRows();
-      return;
     }
   }
 
   Future<void> addMultiple() async {
     final TextEditingController textController = TextEditingController();
     await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              actions: [
-                TextButton(
-                    onPressed: () => paste(textController),
-                    child: const Text("Colar")),
-                TextButton(
-                    onPressed: () => rawAdd(textController.text, widget.id),
-                    child: const Text("Adicionar Produtos"))
-              ],
-              content: textFormFieldPers(
-                  maxLength: 2000,
-                  textController,
-                  "Escreva uma lista no formato NOME PREÇO em cada linha",
-                  keyboardType: TextInputType.text,
-                  height: 300),
-            ));
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Adicionar vários produtos'),
+        content: textFormFieldPers(
+          textController,
+          'Uma linha por produto: NOME PREÇO',
+          keyboardType: TextInputType.text,
+          maxLength: 2000,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => paste(textController),
+            child: const Text('Colar'),
+          ),
+          FilledButton(
+            onPressed: () => rawAdd(textController.text, widget.id),
+            child: const Text('Adicionar'),
+          ),
+        ],
+      ),
+    );
+    textController.dispose();
   }
 
   Future<void> edit(Item product) async {
     await showDialog(
-        context: context,
-        builder: (context) => EditProductDialog(product: product));
+      context: context,
+      builder: (context) => EditProductDialog(product: product),
+    );
     await _getRows();
-    return;
   }
 
   Future<void> removeProduct(Item produto) async {
@@ -135,22 +114,20 @@ class _StateProductsPage extends State<ProductsPage> {
   }
 
   Future<void> printTable() async {
-    List<Item> data = await db.getItems(widget.id);
+    final data = await db.getItems(widget.id);
     if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => PrintPage(
-              commereceType: "precos",
-              data: data,
-              tableName: "${widget.name}      ${widget.date}",
-              // commerceId e timestamp não são necessários para tipo "precos"
-            )));
+      builder: (context) => PrintPage(
+        commereceType: "precos",
+        data: data,
+        tableName: "${widget.name}      ${widget.date}",
+      ),
+    ));
   }
 
   void paste(TextEditingController controller) {
     Clipboard.getData(Clipboard.kTextPlain).then((value) {
-      setState(() {
-        controller.text = value!.text.toString();
-      });
+      setState(() => controller.text = value!.text.toString());
     });
   }
 
@@ -160,8 +137,10 @@ class _StateProductsPage extends State<ProductsPage> {
     for (final Item item in result) {
       if (items.length >= maxProducts) {
         scaffoldMessengerKey.currentState!.showSnackBar(const SnackBar(
-            content: Text(
-                "O limite de $maxProducts Produtos foi atingido, os excedentes não foram adicionados")));
+          content: Text(
+            "O limite de $maxProducts produtos foi atingido, os excedentes não foram adicionados",
+          ),
+        ));
         break;
       }
       await db.insertItem(item);
@@ -172,96 +151,176 @@ class _StateProductsPage extends State<ProductsPage> {
   }
 
   Future<void> rawCopy() async {
-    String str = "";
-    final List<Item> items = await db.getItems(widget.id);
-    for (Item item in items) {
-      str += "${item.extract()}\n";
+    final buffer = StringBuffer();
+    for (final item in items) {
+      buffer.writeln(item.extract());
     }
-    await Clipboard.setData(ClipboardData(text: str));
-    scaffoldMessengerKey.currentState!.showSnackBar(const SnackBar(
-        content: Text("Dados copiados para a área de transferência")));
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+    scaffoldMessengerKey.currentState!.showSnackBar(
+      const SnackBar(content: Text('Dados copiados')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_built) return loadScreen();
+    if (!_built) return const LoadScreen();
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final atLimit = items.length >= maxProducts;
+    final hasSelection = selectedItems.isNotEmpty;
+
     return ScaffoldMessenger(
       key: scaffoldMessengerKey,
-      child: SafeArea(
-        bottom: true,
-        child: Scaffold(
-          floatingActionButton: SpeedDial(
-            elevation: 0,
-            backgroundColor: const Color.fromARGB(30, 106, 117, 117),
-            foregroundColor: Colors.lightGreen,
-            animatedIcon: AnimatedIcons.menu_close,
-            children: [
-              SpeedDialChild(
-                label: "Adicionar Produto",
-                child: const Icon(Icons.add),
-                onTap: addProduct,
-              ),
-              SpeedDialChild(
-                  label: "Imprimir Tabela",
-                  child: const Icon(Icons.print),
-                  onTap: printTable),
-              SpeedDialChild(
-                label: "Adicionar vários produtos",
-                child: const Icon(Icons.add_circle_sharp),
-                onTap: addMultiple,
-              ),
-              SpeedDialChild(
-                  label: "Copiar os dados",
-                  child: const Icon(Icons.copy),
-                  onTap: () async {
-                    await rawCopy();
-                  })
-            ],
+      child: Scaffold(
+        floatingActionButton: themedSpeedDial(
+          context: context,
+          children: [
+            SpeedDialChild(
+              label: 'Adicionar produto',
+              child: const Icon(Icons.add),
+              backgroundColor: colorScheme.secondaryContainer,
+              foregroundColor: colorScheme.onSecondaryContainer,
+              onTap: addProduct,
+            ),
+            SpeedDialChild(
+              label: 'Adicionar vários',
+              child: const Icon(Icons.playlist_add),
+              backgroundColor: colorScheme.tertiaryContainer,
+              foregroundColor: colorScheme.onTertiaryContainer,
+              onTap: addMultiple,
+            ),
+            SpeedDialChild(
+              label: 'Imprimir',
+              child: const Icon(Icons.print_outlined),
+              onTap: printTable,
+            ),
+            SpeedDialChild(
+              label: 'Copiar dados',
+              child: const Icon(Icons.copy_outlined),
+              onTap: rawCopy,
+            ),
+          ],
+        ),
+        appBar: AppBar(
+          title: Text(
+            '${widget.commerce} · ${widget.name}',
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
-          appBar: AppBar(
-              backgroundColor: const Color.fromARGB(255, 147, 199, 27),
-              title: Text("${widget.commerce} ${widget.name} ${widget.date}",
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, color: Colors.white)),
-              centerTitle: true,
-              actions: selectedItems.isEmpty
-                  ? [
-                      Text("${items.length} / $maxProducts",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: items.length < maxProducts
-                                  ? const Color(0xFFFFFFFF)
-                                  : const Color(0xFFFF0000),
-                              fontSize: 18))
-                    ]
-                  : [
-                      if (selectedItems.length == 1)
-                        IconButton(
-                          onPressed: () async {
-                            await edit(selectedItems.first);
-                            selectedItems.clear();
-                            _updateRows();
-                          },
-                          icon:
-                              const Icon(Icons.edit, color: Color(0xFFFFFFFF)),
+          centerTitle: true,
+          actions: hasSelection
+              ? [
+                  if (selectedItems.length == 1)
+                    IconButton(
+                      onPressed: () async {
+                        await edit(selectedItems.first);
+                        selectedItems.clear();
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.edit_outlined),
+                    ),
+                  IconButton(
+                    icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                    onPressed: () async {
+                      for (final produto in selectedItems) {
+                        await removeProduct(produto);
+                      }
+                      selectedItems.clear();
+                      setState(() {});
+                    },
+                  ),
+                ]
+              : [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Center(
+                      child: Text(
+                        '${items.length}/$maxProducts',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: atLimit ? colorScheme.error : colorScheme.onSurfaceVariant,
                         ),
-                      IconButton(
-                        icon:
-                            const Icon(Icons.delete, color: Color(0xFFFFFFFF)),
-                        onPressed: () async {
-                          for (Item produto in selectedItems) {
-                            await removeProduct(produto);
-                          }
-                          selectedItems.clear();
-                          _updateRows();
-                        },
                       ),
-                    ]),
-          body: SingleChildScrollView(
-            child: DataTable(columns: const [
-              DataColumn(label: Text("Produto")),
-              DataColumn(label: Text("Preço")),
-            ], rows: rows),
+                    ),
+                  ),
+                ],
+        ),
+        body: items.isEmpty
+            ? Center(
+                child: Text(
+                  'Nenhum produto na lista',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 4),
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  final selected = selectedItems.contains(item);
+                  return _PriceItemTile(
+                    name: item.name,
+                    priceLabel: '${_currency.format(item.price)} / ${item.type}',
+                    selected: selected,
+                    onTap: () => _toggleSelection(item),
+                  );
+                },
+              ),
+      ),
+    );
+  }
+}
+
+class _PriceItemTile extends StatelessWidget {
+  const _PriceItemTile({
+    required this.name,
+    required this.priceLabel,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String name;
+  final String priceLabel;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Material(
+      color: selected
+          ? colorScheme.primaryContainer
+          : colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(8),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  name,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: selected ? colorScheme.onPrimaryContainer : null,
+                  ),
+                ),
+              ),
+              Text(
+                priceLabel,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: selected
+                      ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
+                      : colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -278,43 +337,62 @@ class AddProductDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isUnitary = false;
-    Widget brlSymbol = Text("R\$",
-        style: Theme.of(context)
-            .textTheme
-            .labelMedium!
-            .copyWith(fontWeight: FontWeight.bold));
+    final brlSymbol = Text(
+      'R\$',
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+    );
+
     return AlertDialog(
+      title: const Text('Novo produto'),
       content: StatefulBuilder(
-          builder: (context, setState) => SingleChildScrollView(
-                child: Column(
-                  children: [
-                    textFormFieldPers(nameController, "Nome do Produto",
-                        keyboardType: TextInputType.name),
-                    textFormFieldPers(priceController,
-                        !isUnitary ? "Preço / kg" : "Preço / Unidade",
-                        keyboardType: TextInputType.number, prefix: brlSymbol),
-                    CheckboxListTile(
-                        title: const Text("Unitário"),
-                        value: isUnitary,
-                        onChanged: (val) {
-                          setState(() => isUnitary = val!);
-                        }),
-                    ElevatedButton(
-                        onPressed: () async {
-                          if (nameController.text.isEmpty ||
-                              priceController.text.isEmpty) return;
-                          await db.insertItem(Item(
-                              name: nameController.text.capitalize(),
-                              price: double.parse(priceController.text
-                                  .replaceFirst(RegExp(r','), '.')),
-                              type: unitaryCheck(!isUnitary),
-                              tableId: tableId));
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text("Adicionar produto"))
-                  ],
-                ),
-              )),
+        builder: (context, setState) => SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              textFormFieldPers(nameController, 'Nome do produto',
+                  keyboardType: TextInputType.name),
+              textFormFieldPers(
+                priceController,
+                !isUnitary ? 'Preço / kg' : 'Preço / unidade',
+                keyboardType: TextInputType.number,
+                prefix: brlSymbol,
+              ),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Unitário'),
+                value: isUnitary,
+                onChanged: (val) => setState(() => isUnitary = val!),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () async {
+            if (nameController.text.isEmpty || priceController.text.isEmpty) {
+              return;
+            }
+            await db.insertItem(Item(
+              name: nameController.text.capitalize(),
+              price: double.parse(
+                priceController.text.replaceFirst(RegExp(r','), '.'),
+              ),
+              type: unitaryCheck(!isUnitary),
+              tableId: tableId,
+            ));
+            if (!context.mounted) return;
+            Navigator.of(context).pop();
+          },
+          child: const Text('Adicionar'),
+        ),
+      ],
     );
   }
 }
@@ -330,47 +408,64 @@ class EditProductDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isUnitary = product.type == "kg" ? false : true;
-    Widget brlSymbol = Text("R\$",
-        style: Theme.of(context)
-            .textTheme
-            .labelMedium!
-            .copyWith(fontWeight: FontWeight.bold));
+    bool isUnitary = product.type != "kg";
+    final brlSymbol = Text(
+      'R\$',
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+    );
+
     return AlertDialog(
+      title: const Text('Editar produto'),
       content: StatefulBuilder(
         builder: (context, setState) => SingleChildScrollView(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              textFormFieldPers(nameController, "Nome do Produto",
+              textFormFieldPers(nameController, 'Nome do produto',
                   keyboardType: TextInputType.name),
-              textFormFieldPers(priceController,
-                  !isUnitary ? "Preço / kg" : "Preço / Unidade",
-                  keyboardType: TextInputType.number, prefix: brlSymbol),
+              textFormFieldPers(
+                priceController,
+                !isUnitary ? 'Preço / kg' : 'Preço / unidade',
+                keyboardType: TextInputType.number,
+                prefix: brlSymbol,
+              ),
               CheckboxListTile(
-                  title: const Text("Unitário"),
-                  value: isUnitary,
-                  onChanged: (val) {
-                    setState(() => isUnitary = val!);
-                  }),
-              ElevatedButton(
-                  onPressed: () async {
-                    if (nameController.text.isEmpty ||
-                        priceController.text.isEmpty) return;
-                    await db.updateItem(Item(
-                        name: nameController.text.capitalize(),
-                        price: double.parse(priceController.text
-                            .replaceFirst(RegExp(r','), '.')),
-                        tableId: product.tableId,
-                        type: unitaryCheck(!isUnitary),
-                        id: product.id));
-                    if (!context.mounted) return;
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("Atualizar produto"))
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Unitário'),
+                value: isUnitary,
+                onChanged: (val) => setState(() => isUnitary = val!),
+              ),
             ],
           ),
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () async {
+            if (nameController.text.isEmpty || priceController.text.isEmpty) {
+              return;
+            }
+            await db.updateItem(Item(
+              name: nameController.text.capitalize(),
+              price: double.parse(
+                priceController.text.replaceFirst(RegExp(r','), '.'),
+              ),
+              tableId: product.tableId,
+              type: unitaryCheck(!isUnitary),
+              id: product.id,
+            ));
+            if (!context.mounted) return;
+            Navigator.of(context).pop();
+          },
+          child: const Text('Salvar'),
+        ),
+      ],
     );
   }
 }
