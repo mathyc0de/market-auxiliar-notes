@@ -35,9 +35,3 @@ flutter:
     - .env
     - assets/logo.png
   uses-material-design: true
-  fonts:
-    - family: OpenSans
-      fonts:
-        - asset: fonts/OpenSans-Regular.ttf
-        - asset: fonts/OpenSans-Bold.ttf
-          weight: 700 
