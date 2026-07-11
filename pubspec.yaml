@@ -1,5 +1,5 @@
 name: market_invoices_app
-description: "A new Flutter project."
+description: "A Flutter application for managing market invoices."
 
 publish_to: 'none'
 
