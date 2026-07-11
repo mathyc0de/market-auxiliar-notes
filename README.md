@@ -50,47 +50,40 @@ The app targets a practical workflow: capture what was sold or what prices apply
 
 ## Screenshots
 
-<p align="center">
-  <img src="assets/readme_images/flutter_07.png" width="280" alt="Home screen showing sales and prices tabs"/>
-  <br/>
-  <em>Home — switch between Sales and Prices lists</em>
-</p>
-
-<p align="center">
-  <img src="assets/readme_images/flutter_08.png" width="280" alt="Business screen with date-based list"/>
-  <br/>
-  <em>Business — lists without a name show the creation date</em>
-</p>
-
-<p align="center">
-  <img src="assets/readme_images/flutter_09.png" width="280" alt="Business screen with named and date-only lists"/>
-  <br/>
-  <em>Business — multiple lists per day (e.g. morning and afternoon)</em>
-</p>
-
-<p align="center">
-  <img src="assets/readme_images/flutter_10.png" width="280" alt="Sales list with products, quantities, and total"/>
-  <br/>
-  <em>Sales list — items with quantity, price, and running total</em>
-</p>
-
-<p align="center">
-  <img src="assets/readme_images/flutter_11.png" width="280" alt="PDF preview of a sales list"/>
-  <br/>
-  <em>PDF preview — sales list ready to print or share</em>
-</p>
-
-<p align="center">
-  <img src="assets/readme_images/flutter_13.png" width="280" alt="Thermal receipt preview and printer search"/>
-  <br/>
-  <em>Thermal print — receipt preview and printer discovery</em>
-</p>
-
-<p align="center">
-  <img src="assets/readme_images/flutter_15.png" width="280" alt="PDF preview of a price list"/>
-  <br/>
-  <em>PDF preview — price list with unit (un / kg)</em>
-</p>
+<table align="center">
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/readme_images/flutter_07.png" width="250" alt="Home screen showing sales and prices tabs"/>
+      <br/>
+      <em>Home — switch between Sales and Prices lists</em>
+    </td>
+    <td align="center" width="50%">
+      <img src="assets/readme_images/flutter_10.png" width="250" alt="Sales list with products, quantities, and total"/>
+      <br/>
+      <em>Sales list — items, price, and running total</em>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/readme_images/flutter_11.png" width="250" alt="PDF preview of a sales list"/>
+      <br/>
+      <em>PDF preview — sales list ready to print</em>
+    </td>
+    <td align="center" width="50%">
+      <img src="assets/readme_images/flutter_13.png" width="250" alt="Thermal receipt preview and printer search"/>
+      <br/>
+      <em>Thermal print — receipt preview and printer discovery</em>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/readme_images/flutter_15.png" width="250" alt="PDF preview of a price list"/>
+      <br/>
+      <em>PDF preview — price list with unit (un / kg)</em>
+    </td>
+    <td width="50%"></td>
+  </tr>
+</table>
 
 ---
 
