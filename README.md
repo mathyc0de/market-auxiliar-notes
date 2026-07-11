@@ -50,47 +50,47 @@ The app targets a practical workflow: capture what was sold or what prices apply
 
 ## Screenshots
 
-### Home — manage businesses
+<p align="center">
+  <img src="assets/readme_images/flutter_07.png" width="280" alt="Home screen showing sales and prices tabs"/>
+  <br/>
+  <em>Home — switch between Sales and Prices lists</em>
+</p>
 
-![Home screen showing sales and prices tabs](assets/readme_images/flutter_07.png)
+<p align="center">
+  <img src="assets/readme_images/flutter_08.png" width="280" alt="Business screen with date-based list"/>
+  <br/>
+  <em>Business — lists without a name show the creation date</em>
+</p>
 
-Switch between **Sales** and **Prices** lists and open any registered business.
+<p align="center">
+  <img src="assets/readme_images/flutter_09.png" width="280" alt="Business screen with named and date-only lists"/>
+  <br/>
+  <em>Business — multiple lists per day (e.g. morning and afternoon)</em>
+</p>
 
-### Business — list overview
+<p align="center">
+  <img src="assets/readme_images/flutter_10.png" width="280" alt="Sales list with products, quantities, and total"/>
+  <br/>
+  <em>Sales list — items with quantity, price, and running total</em>
+</p>
 
-![Business screen with date-based list](assets/readme_images/flutter_08.png)
+<p align="center">
+  <img src="assets/readme_images/flutter_11.png" width="280" alt="PDF preview of a sales list"/>
+  <br/>
+  <em>PDF preview — sales list ready to print or share</em>
+</p>
 
-Lists without a custom name display the creation date. Named lists show title and date.
+<p align="center">
+  <img src="assets/readme_images/flutter_13.png" width="280" alt="Thermal receipt preview and printer search"/>
+  <br/>
+  <em>Thermal print — receipt preview and printer discovery</em>
+</p>
 
-### Business — multiple lists
-
-![Business screen with named and date-only lists](assets/readme_images/flutter_09.png)
-
-Create several lists per business—for example, morning and afternoon sessions on the same day.
-
-### Sales list — items and total
-
-![Sales list with products, quantities, and total](assets/readme_images/flutter_10.png)
-
-Add products with price and quantity (`kg` or `un`). The total updates automatically at the bottom.
-
-### PDF preview — sales list
-
-![PDF preview of a sales list](assets/readme_images/flutter_11.png)
-
-Preview the list before printing or sharing. Font size can be adjusted from the toolbar.
-
-### Thermal print preview
-
-![Thermal receipt preview and printer search](assets/readme_images/flutter_13.png)
-
-Preview the receipt layout and connect to Bluetooth or USB thermal printers.
-
-### PDF preview — price list
-
-![PDF preview of a price list](assets/readme_images/flutter_15.png)
-
-Price lists show product name and price per unit (`un` or `kg`).
+<p align="center">
+  <img src="assets/readme_images/flutter_15.png" width="280" alt="PDF preview of a price list"/>
+  <br/>
+  <em>PDF preview — price list with unit (un / kg)</em>
+</p>
 
 ---
 
