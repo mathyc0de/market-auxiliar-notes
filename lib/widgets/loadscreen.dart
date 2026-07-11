@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 
+class LoadScreen extends StatelessWidget {
+  const LoadScreen({super.key});
 
-Scaffold loadScreen() {
-    return  Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text("Fruteira"),
-      ),
-      body: const Center(
-        child: CircularProgressIndicator(
-          color: Color.fromARGB(255, 139, 36, 36),
-        ),
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(color: colorScheme.primary),
       ),
     );
   }
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:market_invoices_app/methods/database.dart' show DBManager, db;
 import 'package:market_invoices_app/pages/home.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   Intl.defaultLocale = 'pt_BR';
   await dotenv.load(fileName: ".env");
   db = DBManager(db: await openDatabase(
@@ -102,9 +104,25 @@ class App extends StatelessWidget {
     final brightness = View.of(context).platformDispatcher.platformBrightness;
     final TextTheme textTheme = createTextTheme(context, "Roboto", "Inter");
     final MaterialTheme theme = MaterialTheme(textTheme);
+    final isLight = brightness == Brightness.light;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: brightness == Brightness.light? theme.light() : theme.dark(),
+      theme: isLight ? theme.light() : theme.dark(),
+      builder: (context, child) {
+        final colorScheme = Theme.of(context).colorScheme;
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          systemNavigationBarColor: colorScheme.surface,
+          systemNavigationBarDividerColor: Colors.transparent,
+          systemStatusBarContrastEnforced: false,
+          systemNavigationBarContrastEnforced: false,
+          statusBarIconBrightness:
+              isLight ? Brightness.dark : Brightness.light,
+          systemNavigationBarIconBrightness:
+              isLight ? Brightness.dark : Brightness.light,
+        ));
+        return child ?? const SizedBox.shrink();
+      },
       home: const HomePage(),
     );
   }

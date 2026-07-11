@@ -1,44 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
-SpeedDial multipleFloatingActionButtons() {
+SpeedDial themedSpeedDial({
+  required BuildContext context,
+  required List<SpeedDialChild> children,
+}) {
+  final colorScheme = Theme.of(context).colorScheme;
   return SpeedDial(
     animatedIcon: AnimatedIcons.menu_close,
-    children: [
-      SpeedDialChild(
-        child: const Icon(Icons.add),
-        label: 'Adicionar nova lista',
-        onTap: () {},
-      ),
-      SpeedDialChild(
-        child: const Icon(Icons.delete),
-        label: 'Deletar lista',
-        onTap: () {},
-      ),
-    ],
+    backgroundColor: colorScheme.primary,
+    foregroundColor: colorScheme.onPrimary,
+    overlayColor: colorScheme.scrim,
+    children: children,
   );
 }
 
-
-
-
-SizedBox textFormFieldPers(TextEditingController controller, String labelText, {
+SizedBox textFormFieldPers(
+  TextEditingController controller,
+  String labelText, {
   Widget? prefix,
-  TextInputType keyboardType = TextInputType.name, 
+  TextInputType keyboardType = TextInputType.name,
   bool expands = false,
-  double? height, 
+  double? height,
   int maxLength = 25,
   bool enabled = true,
   void Function(String value)? onChanged,
-  FocusNode? focusNode
-  }){
-    
+  FocusNode? focusNode,
+}) {
   return SizedBox(
-    width: 300,
-    child: Padding(
-      padding: const EdgeInsets.all(5), 
-      child: 
-    TextFormField(
+    width: double.infinity,
+    child: TextFormField(
       onChanged: onChanged,
       expands: expands,
       enabled: enabled,
@@ -52,10 +43,9 @@ SizedBox textFormFieldPers(TextEditingController controller, String labelText, {
         prefix: prefix,
         labelText: labelText,
         border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(5))
-          )
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ),
-    )
+    ),
   );
 }
