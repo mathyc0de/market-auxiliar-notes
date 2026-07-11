@@ -8,11 +8,19 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+Future<void> loadEnv() async {
+  try {
+    await dotenv.load(fileName: '.env', isOptional: true);
+  } on EmptyEnvFileError {
+    // App runs without AI features when .env is empty.
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   Intl.defaultLocale = 'pt_BR';
-  await dotenv.load(fileName: ".env");
+  await loadEnv();
   db = DBManager(db: await openDatabase(
     join(await getDatabasesPath(),'data.db'),
     onOpen: (db) => db.execute("PRAGMA foreign_keys = ON;"),

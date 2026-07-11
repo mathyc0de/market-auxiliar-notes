@@ -33,7 +33,9 @@ final Map<Prompt, String> _promptMap = {
 
 
 Future<String?> sendToGroq(String input, Prompt prompt) async {
-  final String apiKey = dotenv.env['GROQ_API_KEY']!;
+  final apiKey = dotenv.env['GROQ_API_KEY'];
+  if (apiKey == null || apiKey.isEmpty) return null;
+
   final dio = Dio();
   
   try {
