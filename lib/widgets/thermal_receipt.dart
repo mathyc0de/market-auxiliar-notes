@@ -21,6 +21,8 @@ class ThermalReceiptWidget extends StatelessWidget {
   final List<Item> items;
   final double width;
 
+  static const Color _paperColor = Colors.white;
+  static const Color _inkColor = Color(0xFF111111);
   static const double _bodyFontSize = 7;
   static const double _marketNameFontSize = 9;
   static const double _horizontalPadding = 4;
@@ -39,51 +41,58 @@ class ThermalReceiptWidget extends StatelessWidget {
     return SizedBox(
       width: width,
       child: Material(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: _horizontalPadding,
-            vertical: 4,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (ThermalReceiptConfig.logoAssetPath.isNotEmpty)
-                Center(
-                  child: Image.asset(
-                    ThermalReceiptConfig.logoAssetPath,
-                    height: 36,
-                    fit: BoxFit.contain,
+        color: _paperColor,
+        child: DefaultTextStyle(
+          style: const TextStyle(color: _inkColor),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: _horizontalPadding,
+              vertical: 4,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (ThermalReceiptConfig.logoAssetPath.isNotEmpty)
+                  Center(
+                    child: Image.asset(
+                      ThermalReceiptConfig.logoAssetPath,
+                      height: 36,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                if (ThermalReceiptConfig.logoAssetPath.isNotEmpty)
+                  const SizedBox(height: 4),
+                const Text(
+                  ThermalReceiptConfig.marketNamePlaceholder,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: _marketNameFontSize,
+                    color: _inkColor,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              if (ThermalReceiptConfig.logoAssetPath.isNotEmpty)
+                const SizedBox(height: 6),
+                const Divider(thickness: 1, height: 1, color: _inkColor),
                 const SizedBox(height: 4),
-              Text(
-                ThermalReceiptConfig.marketNamePlaceholder,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: _marketNameFontSize),
-              ),
-              const SizedBox(height: 6),
-              const Divider(thickness: 1, height: 1),
-              const SizedBox(height: 4),
-              _ReceiptRow(
-                contentWidth: contentWidth,
-                nome: 'Nome',
-                preco: 'Preço',
-                quantidade: 'Qtd',
-              ),
-              const Divider(height: 1),
-              for (final Item item in items)
                 _ReceiptRow(
                   contentWidth: contentWidth,
-                  nome: item.name,
-                  preco: formatPriceWithUnit(item, f),
-                  quantidade: item.quantity.toString(),
+                  nome: 'Nome',
+                  preco: 'Preço',
+                  quantidade: 'Qtd',
                 ),
-              const Divider(thickness: 1, height: 1),
-              _TotalRow(contentWidth: contentWidth, total: f.format(total)),
-            ],
+                const Divider(height: 1, color: _inkColor),
+                for (final Item item in items)
+                  _ReceiptRow(
+                    contentWidth: contentWidth,
+                    nome: item.name,
+                    preco: formatPriceWithUnit(item, f),
+                    quantidade: item.quantity.toString(),
+                  ),
+                const Divider(thickness: 1, height: 1, color: _inkColor),
+                _TotalRow(contentWidth: contentWidth, total: f.format(total)),
+              ],
+            ),
           ),
         ),
       ),
@@ -104,8 +113,10 @@ class _ReceiptRow extends StatelessWidget {
   final String preco;
   final String quantidade;
 
-  static const TextStyle _style =
-      TextStyle(fontSize: ThermalReceiptWidget._bodyFontSize);
+  static const TextStyle _style = TextStyle(
+    fontSize: ThermalReceiptWidget._bodyFontSize,
+    color: ThermalReceiptWidget._inkColor,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -166,8 +177,10 @@ class _TotalRow extends StatelessWidget {
   final double contentWidth;
   final String total;
 
-  static const TextStyle _style =
-      TextStyle(fontSize: ThermalReceiptWidget._bodyFontSize);
+  static const TextStyle _style = TextStyle(
+    fontSize: ThermalReceiptWidget._bodyFontSize,
+    color: ThermalReceiptWidget._inkColor,
+  );
 
   @override
   Widget build(BuildContext context) {
