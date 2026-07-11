@@ -6,7 +6,6 @@ import 'package:market_invoices_app/methods/database.dart' show Item, db;
 import 'package:market_invoices_app/methods/str_manipulation.dart' show speechToList;
 import 'package:market_invoices_app/widgets/buttons.dart';
 
-
 class AddManyDialog extends StatefulWidget {
   const AddManyDialog({super.key, required this.tableid});
   final int tableid;
@@ -20,133 +19,145 @@ class _AddManyDialogState extends State<AddManyDialog> {
   String? _out;
   List<Item> _items = [];
 
-
   void paste(TextEditingController controller) {
     Clipboard.getData(Clipboard.kTextPlain).then((value) {
-      setState(() {
-      controller.text = value!.text.toString();
-      });
-    }); 
+      setState(() => controller.text = value!.text.toString());
+    });
   }
 
- Future<void> addToDB() async {
+  Future<void> addToDB() async {
     try {
-      for (Item item in _items) {
+      for (final item in _items) {
         await db.insertItem(item);
       }
-    }
-    catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      await showDialog(context: context, builder: (context) => const ErrorDialog(
-        errorMessage: "Houve um erro ao adicionar os itens, certifique-se de informar a quantidade, o nome e o preço corretamente."
-        ));
+      await showDialog(
+        context: context,
+        builder: (context) => const ErrorDialog(
+          errorMessage:
+              'Houve um erro ao adicionar os itens. Verifique quantidade, nome e preço.',
+        ),
+      );
     }
     if (!mounted) return;
     Navigator.of(context).pop();
   }
 
-  Future<bool> uploadStatus() async{
+  Future<bool> uploadStatus() async {
     if (_out == null) {
       await showDialog(
-        context: context, 
+        context: context,
         builder: (context) => const ErrorDialog(
-          errorMessage: "Houve um erro de conexão, certifique-se de estar conectado e tente novamente."
-        ));
-        return false;
+          errorMessage:
+              'Erro de conexão. Verifique sua internet e tente novamente.',
+        ),
+      );
+      return false;
     }
     return true;
   }
 
-
   Future<void> processs() async {
     _out = await sendToGroq(_controller.text, Prompt.sellPagePrompt);
-    print(_out);
-     if (!(await uploadStatus())) {
+    if (!(await uploadStatus())) {
       if (!mounted) return;
       Navigator.of(context).pop();
       return;
-     }
-     _controller.text = '';
+    }
+    _controller.text = '';
     _items = speechToList(jsonDecode(_out!), widget.tableid);
-    setState(() {
-    });
+    setState(() {});
   }
 
-
-  
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     if (_items.isNotEmpty) {
-      return Dialog(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              for (var item in _items)
-                ListTile(
-                  title: Text("${item.quantity} ${item.type} ${item.name} R\$ ${item.price}"),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete), 
-                    onPressed: () {
-                      setState(() {
-                        _items.remove(item);
-                      });
-                    },
+      return AlertDialog(
+        title: const Text('Confirmar produtos'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final item in _items)
+                  Material(
+                    color: colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(8),
+                    child: ListTile(
+                      dense: true,
+                      title: Text(
+                        '${item.quantity} ${item.type} ${item.name}',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      subtitle: Text('R\$ ${item.price}'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.close, color: colorScheme.error),
+                        onPressed: () => setState(() => _items.remove(item)),
+                      ),
+                    ),
                   ),
-                ),
-              ElevatedButton(
-                onPressed: () async {
-                  await addToDB();
-                }, 
-                child: const Text("Adicionar produtos"))
-            ],
+              ],
+            ),
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: addToDB,
+            child: const Text('Adicionar'),
+          ),
+        ],
       );
     }
+
     return AlertDialog(
-      actions: [
-          TextButton(
-            onPressed: () => paste(_controller), 
-            child: const Text("Colar")
-            ),
-          TextButton(
-            onPressed: processs,
-            child: const Text("Adicionar Produtos")
-            )
-        ],
-        content: SizedBox(
-          height: 150,
-          child: textFormFieldPers(
-            maxLength: 1000,
-            _controller, 
-            "Descreva os produtos!",
-            expands: true,
-            ),
+      title: const Text('Adicionar por descrição'),
+      content: SizedBox(
+        height: 150,
+        child: textFormFieldPers(
+          _controller,
+          'Descreva os produtos',
+          maxLength: 1000,
+          expands: true,
         ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => paste(_controller),
+          child: const Text('Colar'),
+        ),
+        FilledButton(
+          onPressed: processs,
+          child: const Text('Processar'),
+        ),
+      ],
     );
   }
 }
 
-
-
 class ErrorDialog extends StatelessWidget {
   const ErrorDialog({super.key, required this.errorMessage});
-
   final String errorMessage;
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Erro"),
+      title: const Text('Erro'),
+      content: SingleChildScrollView(child: Text(errorMessage)),
       actions: [
-        TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("OK"),
-            ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
+        ),
       ],
-      content: SingleChildScrollView(
-        child: Text(errorMessage),
-      ),
     );
   }
 }

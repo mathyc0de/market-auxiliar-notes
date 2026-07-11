@@ -7,7 +7,6 @@ import 'package:market_invoices_app/config/thermal_receipt_config.dart';
 import 'package:market_invoices_app/methods/database.dart';
 import 'package:market_invoices_app/widgets/thermal_receipt.dart';
 
-
 const Map<ConnectionType, String> normalizedConnectionTypeNames = {
   ConnectionType.BLE: 'Bluetooth',
   ConnectionType.USB: 'USB',
@@ -15,11 +14,7 @@ const Map<ConnectionType, String> normalizedConnectionTypeNames = {
 };
 
 class ThermalPrintPage extends StatefulWidget {
-  const ThermalPrintPage({
-    super.key,
-    required this.items,
-  });
-
+  const ThermalPrintPage({super.key, required this.items});
   final List<Item> items;
 
   @override
@@ -72,16 +67,12 @@ class _ThermalPrintPageState extends State<ThermalPrintPage> {
     }
 
     for (final Printer printer in printers) {
-      if (printer.isConnected ?? false) {
-        return printer;
-      }
+      if (printer.isConnected ?? false) return printer;
     }
 
     if (_selectedPrinter != null) {
       for (final Printer printer in printers) {
-        if (_isSamePrinter(printer, _selectedPrinter!)) {
-          return printer;
-        }
+        if (_isSamePrinter(printer, _selectedPrinter!)) return printer;
       }
     }
 
@@ -130,7 +121,9 @@ class _ThermalPrintPageState extends State<ThermalPrintPage> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -142,30 +135,31 @@ class _ThermalPrintPageState extends State<ThermalPrintPage> {
 
   @override
   Widget build(BuildContext context) {
-    final double receiptWidth = ThermalReceiptWidget.widthForDevicePixelRatio(
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final receiptWidth = ThermalReceiptWidget.widthForDevicePixelRatio(
       View.of(context).devicePixelRatio,
     );
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 147, 199, 27),
-        title: const Text(
-          'Impressão Térmica',
-          style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
+        title: Text(
+          'Impressão térmica',
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w500),
         ),
         centerTitle: true,
         actions: [
           IconButton(
             icon: _printing
-                ? const SizedBox(
+                ? SizedBox(
                     width: 24,
                     height: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: colorScheme.onSurface,
                     ),
                   )
-                : const Icon(Icons.print, color: Colors.white),
+                : const Icon(Icons.print_outlined),
             onPressed: _printing ? null : _print,
             tooltip: 'Imprimir',
           ),
@@ -178,26 +172,34 @@ class _ThermalPrintPageState extends State<ThermalPrintPage> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Center(
-                child: ThermalReceiptWidget(
-                  items: widget.items,
-                  width: receiptWidth,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.shadow.withValues(alpha: 0.25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ThermalReceiptWidget(
+                    items: widget.items,
+                    width: receiptWidth,
+                  ),
                 ),
               ),
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1, color: colorScheme.outlineVariant),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Row(
               children: [
-                const Text(
-                  'Impressoras',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                Text('Impressoras', style: theme.textTheme.titleSmall),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: _startScan,
-                  icon: const Icon(Icons.refresh),
+                  icon: const Icon(Icons.refresh, size: 18),
                   label: const Text('Buscar'),
                 ),
               ],
@@ -206,26 +208,47 @@ class _ThermalPrintPageState extends State<ThermalPrintPage> {
           Expanded(
             flex: 1,
             child: _printers.isEmpty
-                ? const Center(child: Text('Nenhuma impressora encontrada'))
-                : ListView.builder(
+                ? Center(
+                    child: Text(
+                      'Nenhuma impressora encontrada',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: _printers.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 4),
                     itemBuilder: (context, index) {
                       final printer = _printers[index];
                       final selected = _selectedPrinter?.address == printer.address &&
                           _selectedPrinter?.name == printer.name;
-                      return ListTile(
-                        selected: selected,
-                        leading: Icon(
-                          printer.connectionType == ConnectionType.USB
-                              ? Icons.usb
-                              : Icons.bluetooth,
+                      return Material(
+                        color: selected
+                            ? colorScheme.primaryContainer
+                            : colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(8),
+                        clipBehavior: Clip.antiAlias,
+                        child: ListTile(
+                          dense: true,
+                          selected: selected,
+                          leading: Icon(
+                            printer.connectionType == ConnectionType.USB
+                                ? Icons.usb
+                                : Icons.bluetooth,
+                            size: 20,
+                            color: selected
+                                ? colorScheme.onPrimaryContainer
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                          title: Text(printer.name ?? 'Sem nome'),
+                          subtitle: Text(
+                            '${normalizedConnectionTypeNames[printer.connectionType] ?? 'Desconhecido'} · '
+                            '${printer.isConnected == true ? 'Conectado' : 'Desconectado'}',
+                          ),
+                          onTap: () => setState(() => _selectedPrinter = printer),
                         ),
-                        title: Text(printer.name ?? 'Sem nome'),
-                        subtitle: Text(
-                          '${normalizedConnectionTypeNames[printer.connectionType] ?? 'Conexão Desconhecida'} • '
-                          '${printer.isConnected == true ? 'Conectado' : 'Desconectado'}',
-                        ),
-                        onTap: () => setState(() => _selectedPrinter = printer),
                       );
                     },
                   ),

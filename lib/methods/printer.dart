@@ -50,21 +50,21 @@ class _PrintPageState extends State<PrintPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Listas da Fruteira"),
+          title: Text(
+            'Visualizar lista',
+            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w500),
+          ),
           actions: [
             IconButton(
-              icon: const Icon(
-                Icons.text_decrease,
-                color: Color(0xFF000000),
-              ),
+              icon: const Icon(Icons.text_decrease),
               onPressed: () {
                 if (cellFontSize > 4) {
                   final newSize = cellFontSize - 0.5;
-                  setState(() {
-                    cellFontSize = newSize;
-                  });
+                  setState(() => cellFontSize = newSize);
                   _saveFontSize(newSize);
                 }
               },
@@ -73,20 +73,15 @@ class _PrintPageState extends State<PrintPage> {
             Center(
               child: Text(
                 cellFontSize.toStringAsFixed(1),
-                style: const TextStyle(color: Color(0xFF000000)),
+                style: theme.textTheme.labelLarge,
               ),
             ),
             IconButton(
-              icon: const Icon(
-                Icons.text_increase,
-                color: Color(0xFF000000),
-              ),
+              icon: const Icon(Icons.text_increase),
               onPressed: () {
                 if (cellFontSize < 16) {
                   final newSize = cellFontSize + 0.5;
-                  setState(() {
-                    cellFontSize = newSize;
-                  });
+                  setState(() => cellFontSize = newSize);
                   _saveFontSize(newSize);
                 }
               },
@@ -140,7 +135,7 @@ class _PrintPageState extends State<PrintPage> {
     if (collumns == 1) {
       result = [];
       for (final Item item in widget.data) {
-        result.add([item.name, "${f.format(item.price)} / ${item.quantity}"]);
+        result.add([item.name, "${f.format(item.price)} / ${item.type}"]);
       }
       return result;
     }
